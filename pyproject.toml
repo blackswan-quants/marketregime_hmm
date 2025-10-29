@@ -1,0 +1,28 @@
+[project]
+name = "intraday-momentum"
+version = "0.1.0"
+description = "Reproducible implementation and extension of an intraday momentum strategy on SPY — QuantConnect-ready research framework."
+readme = "README.md"
+authors = [
+    { name = "BlackswanQuant Team", email = "blackswan.quants@gmail.com" }
+]
+license = "MIT"
+requires-python = ">=3.12"
+
+# === Core libraries ===
+dependencies = [
+    "ipykernel>=7.0.1",
+    "matplotlib>=3.10.7",
+    "numpy>=2.3.4",
+    "pandas>=2.3.3",
+    "scikit-learn>=1.7.2",
+    "scipy>=1.16.2",
+    "statsmodels>=0.14.5",
+]
+
+[dependency-groups]
+dev = [
+    "black[jupyter]>=25.9.0",
+    "nb-clean>=4.0.1",
+]
+
