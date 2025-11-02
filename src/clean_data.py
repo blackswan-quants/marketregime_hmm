@@ -156,5 +156,6 @@ if __name__ == "__main__":
     df_final = df_final.join(spread_baa_aaa, how='outer')
     # Forward fill for monthly values
     df_final = df_final.ffill()
+    df_final = df_final.dropna() # Remove any remaining NaN values, so that remains the last year
     df_final.to_csv("data/processed/market_macro_merged.csv", index=True, index_label='date')
     df_final.to_parquet("data/processed/market_macro_merged.parquet", index=True)
