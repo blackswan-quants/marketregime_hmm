@@ -3,12 +3,6 @@ import numpy as np
 import os
 from pandas.tseries.offsets import CustomBusinessHour
 
-def identify_outliers_in_prices(df: pd.DataFrame):
-    # Skip rows with NaN values
-    df_valid = df.dropna()
-    condition_lowopen = df_valid['low'] <= df_valid['open']
-    condition_closehigh = df_valid['close'] <= df_valid['high']
-    return df_valid[~(condition_lowopen & condition_closehigh)]
 
 def forward_fill_missing_data(df: pd.DataFrame):
     return df.ffill()
@@ -16,7 +10,7 @@ def forward_fill_missing_data(df: pd.DataFrame):
 def percent_to_decimal(df: pd.DataFrame, columns: list[str]):
     for col in columns:
         df[col] = df[col] / 100.0
-        df['value'] = df['value'].round(7)
+        df[col] = df[col].round(7)
     return df
 
 def check_anomalies_macroeconomic(df: pd.DataFrame):
@@ -129,26 +123,18 @@ if __name__ == "__main__":
     curve_10y_2y = curve_10y_2y.rename(columns={'value': 'yield_curve_10y2y'})
     
     # SPY
-    SPY = pd.read_csv(f"src/classes/data/raw/SPY_1min_20231027_20251027.csv")
+    SPY = pd.read_csv(f"data/raw/SPY_1min_20231027_20251027.csv")
     SPY = SPY.rename(columns={"caldt": "date"})
     SPY = SPY[['date', 'open', 'high', 'low', 'close', 'volume']]
     SPY = group_by_date(SPY)
     SPY = SPY.reset_index()
     SPY = create_rows_for_missing_dates(SPY)
-    df_error = identify_outliers_in_prices(SPY)
-    if not df_error.empty:
-        print(f"Outliers detected in SPY_1min:")
-        print(df_error)
 
     # VIX
-    VIX = pd.read_csv("src/classes/data/raw/^VIX_1day_20231027_20251027.csv")
+    VIX = pd.read_csv("data/raw/^VIX_1day_20231027_20251027.csv")
     VIX = VIX.rename(columns={"caldt": "date"})
     VIX = VIX[['date', 'open', 'high', 'low', 'close', 'volume']]
     VIX = create_rows_for_missing_dates(VIX)
-    df_error = identify_outliers_in_prices(VIX)
-    if not df_error.empty:
-        print(f"Outliers detected in VIX_1day:")
-        print(df_error)
 
     # Merge of all cleaned data
     df_final = SPY.join(VIX, lsuffix='_SPY', rsuffix='_VIX', how='outer')
