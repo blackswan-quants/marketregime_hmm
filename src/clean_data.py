@@ -1,8 +1,8 @@
 import pandas as pd
-import numpy as np
-import os
-from pandas.tseries.offsets import CustomBusinessHour
+from pandas.tseries.holiday import USFederalHolidayCalendar
+from pandas.tseries.offsets import CustomBusinessDay
 
+US_BD = CustomBusinessDay(calendar=USFederalHolidayCalendar())  # FRED/US markets
 
 def forward_fill_missing_data(df: pd.DataFrame):
     return df.ffill()
@@ -29,14 +29,14 @@ def check_anomalies_macroeconomic(df: pd.DataFrame):
     return df
 
 def check_time_gaps(df: pd.DataFrame):
-    # Ensure no time gaps larger than 1 day except weekends
-
-    df['date'] = pd.to_datetime(df['date'])
-    df = df.sort_values('date')
-    date_diffs = df['date'].diff().dt.days
-    for diff in date_diffs[1:]:  # Skip the first NaN
-        if diff != 3 and diff != 1:  # Not a weekend or 1-day gap
-            raise ValueError("Anomaly detected: Time gap larger than expected.")
+    d = df.copy()
+    d['date'] = pd.to_datetime(d['date']).dt.normalize()
+    d = d.sort_values('date')
+    expected = pd.date_range(d['date'].min(), d['date'].max(), freq=US_BD)
+    if not expected.equals(pd.DatetimeIndex(d['date'])):
+        missing = expected.difference(pd.DatetimeIndex(d['date']))
+        if len(missing):
+            raise ValueError(f"Anomaly: missing {len(missing)} business dates, e.g. {missing[:5].tolist()}")
     
     return df
 
@@ -46,9 +46,9 @@ def create_rows_for_missing_dates(df: pd.DataFrame):
     df = df.set_index('date').sort_index()
     
     # Create business day index and reindex
-    bday_index = pd.date_range(start=df.index.min(), end=df.index.max(), freq='B')
+    bday_index = pd.date_range(start=df.index.min(), end=df.index.max(), freq=US_BD)
     df = df.reindex(bday_index)
-    df = forward_fill_missing_data(df)
+    #df = forward_fill_missing_data(df)
     
     return df
 
