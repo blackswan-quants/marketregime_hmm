@@ -97,6 +97,7 @@ if __name__ == "__main__":
     curve_10y_2y['date'] = pd.to_datetime(curve_10y_2y['date'])
     curve_10y_2y = curve_10y_2y.set_index('date')
     curve_10y_2y = curve_10y_2y.rename(columns={'value': 'yield_curve_10y2y'})
+    curve_10y_2y.to_csv("data/processed/cleaned_yield_curve_10y_2y_spread.csv", index=True)
     
     # SPY
     SPY = pd.read_csv("data/raw/SPY_1min_20231027_20251027.csv")
