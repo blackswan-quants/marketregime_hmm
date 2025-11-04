@@ -67,67 +67,45 @@ def group_by_date(df: pd.DataFrame):
     df = df.set_index('date')
     return df
 
-if __name__ == "__main__":
+def missing_dates(df: pd.DataFrame):
+    df['date'] = pd.to_datetime(df['date'], utc=True).dt.normalize().dt.tz_localize(None)
+    df = df.set_index('date').sort_index()
 
-    # AAA
-    AAA = pd.read_csv(f"data/raw/AAA.csv")
-    AAA = forward_fill_missing_data(AAA)
-    AAA = percent_to_decimal(AAA, ['value'])
-    AAA = check_anomalies_macroeconomic(AAA)
-    AAA['date'] = pd.to_datetime(AAA['date'])
-    AAA = AAA.set_index('date')
-    
-    # BAA
-    BAA = pd.read_csv(f"data/raw/BAA.csv")
-    BAA = forward_fill_missing_data(BAA)
-    BAA = percent_to_decimal(BAA, ['value'])
-    BAA = check_anomalies_macroeconomic(BAA)
-    BAA['date'] = pd.to_datetime(BAA['date'])
-    BAA = BAA.set_index('date')
+    bday_index = pd.date_range(start=df.index.min(), end=df.index.max(), freq=US_BD)
+
+    # Identify missing dates
+    missing = bday_index.difference(df.index)
+    return missing.tolist()
+
+if __name__ == "__main__":
     
     # credit_spread_baa_aaa
-    spread_baa_aaa = pd.read_csv(f"data/raw/credit_spread_baa_aaa.csv")
+    spread_baa_aaa = pd.read_csv("data/raw/credit_spread_baa_aaa.csv")
     spread_baa_aaa = forward_fill_missing_data(spread_baa_aaa)
     spread_baa_aaa = percent_to_decimal(spread_baa_aaa, ['value'])
     spread_baa_aaa = check_anomalies_macroeconomic(spread_baa_aaa)
     spread_baa_aaa['date'] = pd.to_datetime(spread_baa_aaa['date'])
     spread_baa_aaa = spread_baa_aaa.set_index('date')
     spread_baa_aaa = spread_baa_aaa.rename(columns={'value': 'credit_spread_baa_aaa'})
-
-    # DGS2
-    DGS2 = pd.read_csv(f"data/raw/DGS2.csv")
-    DGS2 = forward_fill_missing_data(DGS2)
-    DGS2 = percent_to_decimal(DGS2, ['value'])
-    DGS2 = check_anomalies_macroeconomic(DGS2)
-    DGS2 = check_time_gaps(DGS2)
-    DGS2['date'] = pd.to_datetime(DGS2['date'])
-    DGS2 = DGS2.set_index('date')
-    
-    # DGS10
-    DGS10 = pd.read_csv(f"data/raw/DGS10.csv")
-    DGS10 = forward_fill_missing_data(DGS10)
-    DGS10 = percent_to_decimal(DGS10, ['value'])
-    DGS10 = check_anomalies_macroeconomic(DGS10)
-    DGS10 = check_time_gaps(DGS10)
-    DGS10['date'] = pd.to_datetime(DGS10['date'])
-    DGS10 = DGS10.set_index('date')
     
     # yield_curve_10y_2y_spread
-    curve_10y_2y = pd.read_csv(f"data/raw/yield_curve_10y_2y_spread.csv")
+    curve_10y_2y = pd.read_csv("data/raw/yield_curve_10y_2y_spread.csv")
+    curve_10y_2y = check_time_gaps(curve_10y_2y)
     curve_10y_2y = forward_fill_missing_data(curve_10y_2y)
     curve_10y_2y = percent_to_decimal(curve_10y_2y, ['value'])
     curve_10y_2y = check_anomalies_macroeconomic(curve_10y_2y)
-    curve_10y_2y = check_time_gaps(curve_10y_2y)
     curve_10y_2y['date'] = pd.to_datetime(curve_10y_2y['date'])
     curve_10y_2y = curve_10y_2y.set_index('date')
     curve_10y_2y = curve_10y_2y.rename(columns={'value': 'yield_curve_10y2y'})
+    curve_10y_2y.to_csv("data/processed/cleaned_yield_curve_10y_2y_spread.csv", index=True)
     
     # SPY
-    SPY = pd.read_csv(f"data/raw/SPY_1min_20231027_20251027.csv")
+    SPY = pd.read_csv("data/raw/SPY_1min_20231027_20251027.csv")
     SPY = SPY.rename(columns={"caldt": "date"})
     SPY = SPY[['date', 'open', 'high', 'low', 'close', 'volume']]
     SPY = group_by_date(SPY)
     SPY = SPY.reset_index()
+    missing_date = missing_dates(SPY)
     SPY = create_rows_for_missing_dates(SPY)
 
     # VIX
@@ -140,6 +118,7 @@ if __name__ == "__main__":
     df_final = SPY.join(VIX, lsuffix='_SPY', rsuffix='_VIX', how='outer')
     df_final = df_final.join(curve_10y_2y, how='outer')
     df_final = df_final.join(spread_baa_aaa, how='outer')
+    df_final = df_final.drop(missing_date, axis=0)
     # Forward fill for monthly values
     df_final = df_final.ffill()
     df_final = df_final.dropna() # Remove any remaining NaN values, so that remains the last year
