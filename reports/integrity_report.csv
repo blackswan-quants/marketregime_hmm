@@ -1,4 +1,24 @@
-missing_date,reason
-2024-03-29,Good Friday
-2025-01-09,National Day of Mourning (ex president Jimmy Carter)
-2025-04-18,Good Friday
+missing_date,datasets,note,reason
+2023-11-23,"SPY, VIX",Market Closed,
+2023-12-25,"SPY, VIX",Market Closed,
+2024-01-01,"SPY, VIX",Market Closed,
+2024-01-15,"SPY, VIX",Market Closed,
+2024-02-19,"SPY, VIX",Market Closed,
+2024-03-29,"SPY, VIX",Market Closed,Good Friday
+2024-05-27,"SPY, VIX",Market Closed,
+2024-06-19,"SPY, VIX",Market Closed,
+2024-07-04,"SPY, VIX",Market Closed,
+2024-09-02,"SPY, VIX",Market Closed,
+2024-11-11,Curve 10y-2y,We will apply ffill to fill this missing value,
+2024-11-28,"Curve 10y-2y, SPY, VIX",Market Closed,
+2024-12-25,"Curve 10y-2y, SPY, VIX",Market Closed,
+2025-01-01,"Curve 10y-2y, SPY, VIX",Market Closed,
+2025-01-09,"SPY, VIX",There is dirty data in dataset Curve 10y-2y,National Day of Mourning (ex president Jimmy Carter)
+2025-01-20,"Curve 10y-2y, SPY, VIX",Market Closed,
+2025-02-17,"Curve 10y-2y, SPY, VIX",Market Closed,
+2025-04-18,"Curve 10y-2y, SPY, VIX",Market Closed,Good Friday
+2025-05-26,"Curve 10y-2y, SPY, VIX",Market Closed,
+2025-06-19,"Curve 10y-2y, SPY, VIX",Market Closed,
+2025-07-04,"Curve 10y-2y, SPY, VIX",Market Closed,
+2025-09-01,"Curve 10y-2y, SPY, VIX",Market Closed,
+2025-10-13,Curve 10y-2y,Market Closed,
