@@ -5,7 +5,7 @@ from pandas.tseries.offsets import CustomBusinessDay
 
 US_BD = CustomBusinessDay(calendar=USFederalHolidayCalendar())  # FRED/US markets
 
-def missing_dates(df: pd.DataFrame):
+def get_missing_business_dates(df: pd.DataFrame):
     df['date'] = pd.to_datetime(df['date'], utc=True).dt.normalize().dt.tz_localize(None)
     df = df.set_index('date').sort_index()
 
@@ -33,7 +33,7 @@ if __name__ == "__main__":
         if name not in ["AAA", "BAA", "credit_spread_baa_aaa", "DGS2", "DGS10"]:
             if name not in ["yield_curve_10y_2y_spread"]:
                 df.rename(columns={"caldt": "date"}, inplace=True)
-            null_values_dates = missing_dates(df)
+            null_values_dates = get_missing_business_dates(df)
             df_missing_dates = null_values_dates
 
         # Add the dates with the file name
@@ -46,11 +46,11 @@ if __name__ == "__main__":
             reason = date_reasons.get(date_str, "")
             
             all_missing_dates.append({
-                "missing_dates_SPY_and_VIX": date_str,
+                "missing_date": date_str,
                 "reason": reason
             })
 
     df_missing = pd.DataFrame(all_missing_dates)
     df_missing = df_missing.drop_duplicates()
-    df_missing = df_missing.sort_values(by=["missing_dates_SPY_and_VIX"])
+    df_missing = df_missing.sort_values(by=["missing_date"])
     df_missing.to_csv("reports/integrity_report.csv", index=False)
