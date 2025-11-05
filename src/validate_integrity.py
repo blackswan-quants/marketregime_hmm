@@ -36,8 +36,9 @@ if __name__ == "__main__":
         "2025-04-18": "Good Friday"
     }
     note = {
-        "2024-11-11": "We will apply ffill to fill this missing value",
-        "2025-01-09": "There is dirty data in dataset Curve 10y-2y"
+        "2024-11-11": "Bond market closed for Veterans Day (ffill applied)",
+        "2025-01-09": "There is dirty data in dataset Curve 10y-2y",
+        "2025-10-13": "Bond market closed for Columbus Day (ffill applied)",
     }
     
     missing_dates_dict = {}
