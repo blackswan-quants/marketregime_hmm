@@ -25,6 +25,15 @@ dependencies = [
 [dependency-groups]
 dev = [
     "black[jupyter]>=25.9.0",
+    "flake8>=7.1.1",
+    "isort>=5.13.2",
     "nb-clean>=4.0.1",
+    "pre-commit>=4.0.1",
 ]
 
+[tool.black]
+line-length = 120
+
+[tool.isort]
+profile = "black"
+line_length = 120
