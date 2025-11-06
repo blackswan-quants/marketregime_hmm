@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-# Fetch the latest n months of macro data from FRED API and save raw CSVs under data/raw/
+# Fetch the latest n months of macro data from FRED API
+# and save raw CSVs under data/raw/
 
 # Forward filling and data processing will later be performed
 
@@ -8,20 +9,20 @@ import argparse
 import os
 import sys
 import time
+from calendar import monthrange
 from datetime import datetime, timezone
 from typing import Dict
-from calendar import monthrange
 
-import requests
 import pandas as pd
+import requests
 
 FRED_BASE = "https://api.stlouisfed.org/fred/series/observations"
 
 SERIES = {
     "DGS10": "10Y Treasury Yield",
-    "DGS2":  "2Y Treasury Yield",
-    "BAA":   "BAA Corporate Bond Yield",
-    "AAA":   "AAA Corporate Bond Yield",
+    "DGS2": "2Y Treasury Yield",
+    "BAA": "BAA Corporate Bond Yield",
+    "AAA": "AAA Corporate Bond Yield",
 }
 
 # Default months fetch is 12, can be overriden via --months cmd flag
@@ -29,12 +30,24 @@ DEFAULT_MONTH_SPAN = 12
 
 RAW_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "raw")
 
+
 # create data/raw dir
 def _ensure_dirs():
+    """Create data/raw directory if it doesn't exist."""
     os.makedirs(RAW_DIR, exist_ok=True)
+
 
 # calculate n months before today's date
 def _n_months_ago(today: datetime, months: int) -> str:
+    """Calculate date N months before given date.
+
+    Args:
+        today: Reference date.
+        months: Number of months to subtract.
+
+    Returns:
+        Date string in YYYY-MM-DD format.
+    """
     total_months = today.year * 12 + (today.month - 1)
     target_total = total_months - months
     year = target_total // 12
@@ -43,7 +56,21 @@ def _n_months_ago(today: datetime, months: int) -> str:
     day = min(today.day, last_day)
     return f"{year:04d}-{month:02d}-{day:02d}"
 
+
 def fetch_series(api_key: str, series_id: str, start_date: str) -> pd.DataFrame:
+    """Fetch time series data from FRED API.
+
+    Args:
+        api_key: FRED API key.
+        series_id: FRED series identifier.
+        start_date: Start date in YYYY-MM-DD format.
+
+    Returns:
+        DataFrame with date and value columns.
+
+    Raises:
+        RuntimeError: If API request fails after retries.
+    """
     params = {
         "series_id": series_id,
         "api_key": api_key,
@@ -77,32 +104,65 @@ def fetch_series(api_key: str, series_id: str, start_date: str) -> pd.DataFrame:
             attempt += 1
             if attempt >= max_retries:
                 break
-            
-            sleep_s = backoff ** attempt
+
+            sleep_s = backoff**attempt
             time.sleep(sleep_s)
 
     raise RuntimeError(
-        f"FRED API request failed for {series_id} after {max_retries} attempts. "
-        f"Last error: {last_err}"
+        f"FRED API request failed for {series_id} after {max_retries} attempts. " f"Last error: {last_err}"
     )
 
+
 def save_csv(df: pd.DataFrame, name: str):
+    """Save DataFrame to CSV in data/raw directory.
+
+    Args:
+        df: DataFrame to save.
+        name: Filename without extension.
+    """
     path = os.path.join(RAW_DIR, f"{name}.csv")
     df.to_csv(path, index=False)
 
+
 def derive_credit_spread(baa: pd.DataFrame, aaa: pd.DataFrame) -> pd.DataFrame:
+    """Calculate credit spread between BAA and AAA yields.
+
+    Args:
+        baa: BAA yield data.
+        aaa: AAA yield data.
+
+    Returns:
+        DataFrame with credit spread.
+    """
     df = pd.merge(baa, aaa, on="date", how="outer", suffixes=("_baa", "_aaa"))
     df = df.sort_values("date").reset_index(drop=True)
     df["value"] = df["value_baa"] - df["value_aaa"]
     return df[["date", "value"]]
 
+
 def derive_10y_2y_spread(d10: pd.DataFrame, d2: pd.DataFrame) -> pd.DataFrame:
+    """Calculate yield curve spread between 10Y and 2Y treasuries.
+
+    Args:
+        d10: 10Y treasury yield data.
+        d2: 2Y treasury yield data.
+
+    Returns:
+        DataFrame with yield curve spread.
+    """
     df = pd.merge(d10, d2, on="date", how="outer", suffixes=("_10y", "_2y"))
     df = df.sort_values("date").reset_index(drop=True)
     df["value"] = df["value_10y"] - df["value_2y"]
     return df[["date", "value"]]
 
+
 def fetch_and_save(api_key: str, months: int):
+    """Fetch FRED data for all series and save to CSV.
+
+    Args:
+        api_key: FRED API key.
+        months: Number of months of historical data.
+    """
     _ensure_dirs()
     today = datetime.now(timezone.utc)
     start_date = _n_months_ago(today, months)
@@ -127,22 +187,35 @@ def fetch_and_save(api_key: str, months: int):
 
     print("Done. Raw CSVs available in data/raw/.")
 
+
 def main():
     parser = argparse.ArgumentParser(description="Fetch last N months of macro data from FRED and save raw CSVs.")
-    parser.add_argument("--api-key", type=str, default=os.getenv("FRED_API_KEY"),
-                        help="FRED API key (or set FRED_API_KEY env var).")
-    parser.add_argument("--months", type=int, default=DEFAULT_MONTH_SPAN,
-                        help=f"Number of months to fetch (default {DEFAULT_MONTH_SPAN}).")
+    parser.add_argument(
+        "--api-key",
+        type=str,
+        default=os.getenv("FRED_API_KEY"),
+        help="FRED API key (or set FRED_API_KEY env var).",
+    )
+    parser.add_argument(
+        "--months",
+        type=int,
+        default=DEFAULT_MONTH_SPAN,
+        help=f"Number of months to fetch (default {DEFAULT_MONTH_SPAN}).",
+    )
     args = parser.parse_args()
 
     if not args.api_key:
-        print("ERROR: FRED API key is required. Use --api-key or set FRED_API_KEY env var.", file=sys.stderr)
+        print(
+            "ERROR: FRED API key is required. " "Use --api-key or set FRED_API_KEY env var.",
+            file=sys.stderr,
+        )
         sys.exit(1)
     if args.months <= 0:
         print("ERROR: --months must be a positive integer.", file=sys.stderr)
         sys.exit(1)
 
     fetch_and_save(args.api_key, args.months)
+
 
 if __name__ == "__main__":
     main()
