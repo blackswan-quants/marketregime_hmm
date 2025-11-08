@@ -10,11 +10,12 @@ import os
 import sys
 import time
 from calendar import monthrange
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Dict
 
 import pandas as pd
 import requests
+import yfinance as yf
 
 FRED_BASE = "https://api.stlouisfed.org/fred/series/observations"
 
@@ -28,7 +29,7 @@ SERIES = {
 # Default months fetch is 12, can be overriden via --months cmd flag
 DEFAULT_MONTH_SPAN = 12
 
-RAW_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "raw")
+RAW_DIR = "data/raw"
 
 
 # create data/raw dir
@@ -215,6 +216,28 @@ def main():
         sys.exit(1)
 
     fetch_and_save(args.api_key, args.months)
+
+
+    tickers = ["MOVE", "TLT"]
+    start_date = _n_months_ago(datetime.strptime("2025-11-01", "%Y-%m-%d"), DEFAULT_MONTH_SPAN)
+    end_date = datetime.now(timezone.utc)
+    
+    data = yf.download(
+        tickers, 
+        start=start_date, 
+        end=end_date + timedelta(days=1), 
+        progress=False,
+        auto_adjust=True,
+        threads=False  # It avoids database lock issues
+    )
+
+    #Save MOVE data
+    move_data = data.xs('MOVE', level=1, axis=1)
+    move_data.to_csv(os.path.join(RAW_DIR, "MOVE.csv"))
+
+    #Save TLT data
+    tlt_data = data.xs('TLT', level=1, axis=1)
+    tlt_data.to_csv(os.path.join(RAW_DIR, "TLT.csv"))
 
 
 if __name__ == "__main__":
