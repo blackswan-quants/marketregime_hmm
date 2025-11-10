@@ -1,7 +1,9 @@
 import pandas as pd
 from pandas.tseries.holiday import USFederalHolidayCalendar
 from pandas.tseries.offsets import CustomBusinessDay
+import os
 
+CLEANED_DIR = "data/cleaned"
 US_BD = CustomBusinessDay(calendar=USFederalHolidayCalendar())  # FRED/US markets
 
 
@@ -134,26 +136,6 @@ def group_by_date(df: pd.DataFrame):
     df = df.set_index("date")
     return df
 
-
-def missing_dates(df: pd.DataFrame):
-    """Identify missing business dates in DataFrame.
-
-    Args:
-        df: DataFrame with date column.
-
-    Returns:
-        List of missing dates.
-    """
-    df["date"] = pd.to_datetime(df["date"], utc=True).dt.normalize().dt.tz_localize(None)
-    df = df.set_index("date").sort_index()
-
-    bday_index = pd.date_range(start=df.index.min(), end=df.index.max(), freq=US_BD)
-
-    # Identify missing dates
-    missing = bday_index.difference(df.index)
-    return missing.tolist()
-
-
 if __name__ == "__main__":
 
     # credit_spread_baa_aaa
@@ -163,7 +145,31 @@ if __name__ == "__main__":
     spread_baa_aaa = check_anomalies_macroeconomic(spread_baa_aaa)
     spread_baa_aaa["date"] = pd.to_datetime(spread_baa_aaa["date"])
     spread_baa_aaa = spread_baa_aaa.set_index("date")
-    spread_baa_aaa = spread_baa_aaa.rename(columns={"value": "credit_spread_baa_aaa"})
+    spread_baa_aaa.to_parquet(os.path.join(CLEANED_DIR, "credit_spread.parquet"))
+    spread_baa_aaa.to_csv(os.path.join(CLEANED_DIR, "credit_spread.csv"))
+    spread_baa_aaa = spread_baa_aaa.rename(columns={"value": "credit_spread"})
+
+    # DGS2
+    DGS2 = pd.read_csv("data/raw/DGS2.csv")
+    DGS2 = check_time_gaps(DGS2)
+    DGS2 = forward_fill_missing_data(DGS2)
+    DGS2 = percent_to_decimal(DGS2, ["value"])
+    DGS2 = check_anomalies_macroeconomic(DGS2)
+    DGS2["date"] = pd.to_datetime(DGS2["date"])
+    DGS2 = DGS2.set_index("date")
+    DGS2.to_parquet(os.path.join(CLEANED_DIR, "dgs2.parquet"))
+    DGS2.to_csv(os.path.join(CLEANED_DIR, "dgs2.csv"))
+
+    # DGS10
+    DGS10 = pd.read_csv("data/raw/DGS10.csv")
+    DGS10 = check_time_gaps(DGS10)
+    DGS10 = forward_fill_missing_data(DGS10)
+    DGS10 = percent_to_decimal(DGS10, ["value"])
+    DGS10 = check_anomalies_macroeconomic(DGS10)
+    DGS10["date"] = pd.to_datetime(DGS10["date"])
+    DGS10 = DGS10.set_index("date")
+    DGS10.to_parquet(os.path.join(CLEANED_DIR, "dgs10.parquet"))
+    DGS10.to_csv(os.path.join(CLEANED_DIR, "dgs10.csv"))
 
     # yield_curve_10y_2y_spread
     curve_10y_2y = pd.read_csv("data/raw/yield_curve_10y_2y_spread.csv")
@@ -181,22 +187,61 @@ if __name__ == "__main__":
     SPY = SPY[["date", "open", "high", "low", "close", "volume"]]
     SPY = group_by_date(SPY)
     SPY = SPY.reset_index()
-    missing_date = missing_dates(SPY)
     SPY = create_rows_for_missing_dates(SPY)
+    SPY = forward_fill_missing_data(SPY)
+    SPY = SPY.reset_index().rename(columns={"index": "date"})
+    SPY = SPY.set_index("date")
+    SPY.to_parquet(os.path.join(CLEANED_DIR, "spx.parquet"))
+    SPY.to_csv(os.path.join(CLEANED_DIR, "spx.csv"))
 
     # VIX
     VIX = pd.read_csv("data/raw/^VIX_1day_20231027_20251027.csv")
     VIX = VIX.rename(columns={"caldt": "date"})
     VIX = VIX[["date", "open", "high", "low", "close", "volume"]]
     VIX = create_rows_for_missing_dates(VIX)
+    VIX = forward_fill_missing_data(VIX)
+    VIX = VIX.reset_index().rename(columns={"index": "date"})
+    VIX = VIX.set_index("date")
+    VIX.to_parquet(os.path.join(CLEANED_DIR, "vix.parquet"))
+    VIX.to_csv(os.path.join(CLEANED_DIR, "vix.csv"))
+
+    # MOVE
+    MOVE = pd.read_csv("data/raw/MOVE.csv")
+    MOVE = MOVE.rename(columns={"Date": "date"})
+    MOVE['date'] = pd.to_datetime(MOVE['date'], utc=True).dt.normalize().dt.tz_localize(None)
+    MOVE.set_index('date', inplace=True)
+    MOVE = MOVE[['Open', 'High', 'Low', 'Close', 'Volume']]
+    MOVE = MOVE.reset_index()
+    MOVE = create_rows_for_missing_dates(MOVE)
+    MOVE = forward_fill_missing_data(MOVE)
+    MOVE = MOVE.reset_index().rename(columns={"index": "date"})
+    MOVE = MOVE.set_index("date")
+    MOVE.to_parquet(os.path.join(CLEANED_DIR, "move.parquet"))
+    MOVE.to_csv(os.path.join(CLEANED_DIR, "move.csv"))
+    MOVE = MOVE.rename(columns=lambda x: x.lower() + '_MOVE')
+
+    # TLT
+    TLT = pd.read_csv("data/raw/TLT.csv")
+    TLT = TLT.rename(columns={"Date": "date"})
+    TLT['date'] = pd.to_datetime(TLT['date'], utc=True).dt.normalize().dt.tz_localize(None)
+    TLT.set_index('date', inplace=True)
+    TLT = TLT[['Open', 'High', 'Low', 'Close', 'Volume']]
+    TLT = TLT.reset_index()
+    TLT = create_rows_for_missing_dates(TLT)
+    TLT = forward_fill_missing_data(TLT)
+    TLT = TLT.reset_index().rename(columns={"index": "date"})
+    TLT = TLT.set_index("date")
+    TLT.to_parquet(os.path.join(CLEANED_DIR, "tlt.parquet"))
+    TLT.to_csv(os.path.join(CLEANED_DIR, "tlt.csv"))
+    TLT = TLT.rename(columns=lambda x: x.lower() + '_TLT')
 
     # Merge of all cleaned data
-    df_final = SPY.join(VIX, lsuffix="_SPY", rsuffix="_VIX", how="outer")
-    df_final = df_final.join(curve_10y_2y, how="outer")
-    df_final = df_final.join(spread_baa_aaa, how="outer")
-    df_final = df_final.drop(missing_date, axis=0)
-    # Forward fill for monthly values
+    df_final = SPY.join(VIX, lsuffix='_SPY', rsuffix='_VIX', how='outer')
+    df_final = df_final.join(curve_10y_2y, how='outer')
+    df_final = df_final.join(spread_baa_aaa, how='outer')
+    df_final = df_final.join(MOVE, how='outer')
+    df_final = df_final.join(TLT, how='outer')
     df_final = df_final.ffill()
     df_final = df_final.dropna()  # Remove any remaining NaN values, so that remains the last year
-    df_final.to_csv("data/processed/market_macro_merged.csv", index=True, index_label="date")
-    df_final.to_parquet("data/processed/market_macro_merged.parquet", index=True)
+    df_final.to_csv("data/cleaned/market_macro_merged.csv", index=True, index_label="date")
+    df_final.to_parquet("data/cleaned/market_macro_merged.parquet", index=True)
