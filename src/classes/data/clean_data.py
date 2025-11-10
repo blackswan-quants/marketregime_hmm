@@ -6,6 +6,7 @@ import os
 CLEANED_DIR = "data/cleaned"
 US_BD = CustomBusinessDay(calendar=USFederalHolidayCalendar())  # FRED/US markets
 
+
 def forward_fill_missing_data(df: pd.DataFrame):
     """Forward fill missing values in DataFrame.
 
