@@ -9,14 +9,14 @@ import os
 import sys
 import time
 from datetime import datetime, timezone
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Union, List
 from calendar import monthrange
 from pathlib import Path
 
-import pandas as pd
-from pandas.tseries.holiday import USFederalHolidayCalendar
-from pandas.tseries.offsets import CustomBusinessDay
-import requests
+import pandas as pd  # type: ignore
+from pandas.tseries.holiday import USFederalHolidayCalendar  # type: ignore
+from pandas.tseries.offsets import CustomBusinessDay  # type: ignore
+import requests  # type: ignore
 
 # Configure US business days (excluding federal holidays)
 US_BD = CustomBusinessDay(calendar=USFederalHolidayCalendar())
@@ -118,9 +118,9 @@ class DataManager:
                     return pd.DataFrame(columns=["date", "value"])
                 
                 df = df[["date", "value"]].copy()
-                df["date"] = pd.to_datetime(df["date"], utc=False).dt.date
+                df["date"] = pd.to_datetime(df["date"], utc=False).dt.date  # type: ignore[attr-defined]
                 df["value"] = pd.to_numeric(df["value"].replace(".", pd.NA), errors="coerce")
-                df = df.sort_values("date").reset_index(drop=True)
+                df = df.sort_values("date").reset_index(drop=True)  # type: ignore[call-overload]
                 return df
             
             except (requests.exceptions.RequestException, ValueError) as e:
@@ -186,14 +186,16 @@ class DataManager:
         df = pd.merge(baa, aaa, on="date", how="outer", suffixes=("_baa", "_aaa"))
         df = df.sort_values("date").reset_index(drop=True)
         df["value"] = df["value_baa"] - df["value_aaa"]
-        return df[["date", "value"]]
+        result: pd.DataFrame = df[["date", "value"]]  # type: ignore[assignment]
+        return result
     
     def _derive_10y_2y_spread(self, d10: pd.DataFrame, d2: pd.DataFrame) -> pd.DataFrame:
         """Derive 10Y-2Y yield curve spread."""
         df = pd.merge(d10, d2, on="date", how="outer", suffixes=("_10y", "_2y"))
         df = df.sort_values("date").reset_index(drop=True)
         df["value"] = df["value_10y"] - df["value_2y"]
-        return df[["date", "value"]]
+        result: pd.DataFrame = df[["date", "value"]]  # type: ignore[assignment]
+        return result
     
     # ==================== Data Loading Methods ====================
     
@@ -264,7 +266,7 @@ class DataManager:
             ValueError: If business days are missing
         """
         d = df.copy()
-        d["date"] = pd.to_datetime(d["date"]).dt.normalize()
+        d["date"] = pd.to_datetime(d["date"]).dt.normalize()  # type: ignore[attr-defined]
         d = d.sort_values("date")
         expected = pd.date_range(d["date"].min(), d["date"].max(), freq=US_BD)
         
@@ -288,7 +290,7 @@ class DataManager:
             DataFrame with complete business day index
         """
         df = df.copy()
-        df["date"] = pd.to_datetime(df["date"], utc=True).dt.normalize().dt.tz_localize(None)
+        df["date"] = pd.to_datetime(df["date"], utc=True).dt.normalize().dt.tz_localize(None)  # type: ignore[attr-defined]
         df = df.set_index("date").sort_index()
         
         bday_index = pd.date_range(start=df.index.min(), end=df.index.max(), freq=US_BD)
@@ -323,7 +325,7 @@ class DataManager:
         
         return df
     
-    def missing_dates(self, df: pd.DataFrame) -> list:
+    def missing_dates(self, df: pd.DataFrame) -> List:
         """
         Identify missing business dates in a time series.
         
@@ -335,11 +337,11 @@ class DataManager:
         """
         df = df.copy()
         if "date" in df.columns:
-            df["date"] = pd.to_datetime(df["date"], utc=True).dt.normalize().dt.tz_localize(None)
+            df["date"] = pd.to_datetime(df["date"], utc=True).dt.normalize().dt.tz_localize(None)  # type: ignore[attr-defined]
             df = df.set_index("date").sort_index()
         
         bday_index = pd.date_range(start=df.index.min(), end=df.index.max(), freq=US_BD)
-        missing = bday_index.difference(df.index)
+        missing = bday_index.difference(df.index)  # type: ignore[arg-type]
         
         return missing.tolist()
     
@@ -391,7 +393,8 @@ class DataManager:
         if "caldt" in df.columns:
             df = df.rename(columns={"caldt": "date"})
         
-        df = df[["date", "open", "high", "low", "close", "volume"]]
+        df_subset: pd.DataFrame = df[["date", "open", "high", "low", "close", "volume"]]  # type: ignore[assignment]
+        df = df_subset
         df = self.group_by_date(df)
         df.reset_index(inplace=True)
         
