@@ -1,12 +1,16 @@
 """
 Test suite for the unified DataManager class.
 """
+
 import sys
 from pathlib import Path
-import pytest
+
 import pandas as pd
+import pytest
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "src" / "classes" / "data"))
 from data_manager import DataManager
+
 
 def test_forward_fill_missing_data():
     df = pd.DataFrame({"a": [1, None, 3]})
@@ -14,11 +18,13 @@ def test_forward_fill_missing_data():
     filled = manager.forward_fill_missing_data(df)
     assert filled["a"].isnull().sum() == 0
 
+
 def test_percent_to_decimal():
     df = pd.DataFrame({"value": [100, 50, 25]})
     manager = DataManager()
     out = manager.percent_to_decimal(df, ["value"])
     assert all(out["value"] < 2)
+
 
 def test_check_anomalies_macroeconomic():
     df = pd.DataFrame({"date": ["2020-01-01", "2020-01-02"], "value": [1, 2]})
@@ -39,6 +45,7 @@ def test_check_anomalies_macroeconomic():
     with pytest.raises(ValueError):
         manager.check_anomalies_macroeconomic(df4)
 
+
 def test_check_time_gaps():
     manager = DataManager()
     # No gap
@@ -49,27 +56,32 @@ def test_check_time_gaps():
     with pytest.raises(ValueError):
         manager.check_time_gaps(df2)
 
+
 def test_create_rows_for_missing_dates():
     manager = DataManager()
     df = pd.DataFrame({"date": ["2020-01-01", "2020-01-03"], "value": [1, 3]})
     out = manager.create_rows_for_missing_dates(df)
     assert pd.Timestamp("2020-01-02") in out.index
 
+
 def test_group_by_date():
     manager = DataManager()
-    df = pd.DataFrame({
-        "date": ["2020-01-01 09:30", "2020-01-01 16:00"],
-        "open": [1, 2],
-        "high": [2, 3],
-        "low": [0, 1],
-        "close": [2, 3],
-        "volume": [100, 200],
-    })
+    df = pd.DataFrame(
+        {
+            "date": ["2020-01-01 09:30", "2020-01-01 16:00"],
+            "open": [1, 2],
+            "high": [2, 3],
+            "low": [0, 1],
+            "close": [2, 3],
+            "volume": [100, 200],
+        }
+    )
     out = manager.group_by_date(df)
     assert out.shape[0] == 1
     assert out["open"].iloc[0] == 1
     assert out["close"].iloc[0] == 3
     assert out["volume"].iloc[0] == 300
+
 
 def test_missing_dates():
     manager = DataManager()

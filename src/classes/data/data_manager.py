@@ -1,19 +1,20 @@
 """
 Unified DataManager class for all data loading, fetching, cleaning, and validation.
 """
+
 import os
 import sys
 import time
-from datetime import datetime, timezone, timedelta
-from typing import Dict, Optional, Union, List
 from calendar import monthrange
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from typing import Dict, List, Optional, Union
 
 import pandas as pd
-from pandas.tseries.holiday import USFederalHolidayCalendar
-from pandas.tseries.offsets import CustomBusinessDay
 import requests
 import yfinance as yf
+from pandas.tseries.holiday import USFederalHolidayCalendar
+from pandas.tseries.offsets import CustomBusinessDay
 
 US_BD = CustomBusinessDay(calendar=USFederalHolidayCalendar())
 FRED_BASE = "https://api.stlouisfed.org/fred/series/observations"
@@ -23,6 +24,7 @@ FRED_SERIES = {
     "BAA": "BAA Corporate Bond Yield",
     "AAA": "AAA Corporate Bond Yield",
 }
+
 
 class DataManager:
     def __init__(self, data_dir: Optional[Union[str, Path]] = None):
@@ -79,11 +81,10 @@ class DataManager:
                 attempt += 1
                 if attempt >= max_retries:
                     break
-                sleep_s = backoff ** attempt
+                sleep_s = backoff**attempt
                 time.sleep(sleep_s)
         raise RuntimeError(
-            f"FRED API request failed for {series_id} after {max_retries} attempts. "
-            f"Last error: {last_err}"
+            f"FRED API request failed for {series_id} after {max_retries} attempts. " f"Last error: {last_err}"
         )
 
     def fetch_and_save_fred_data(self, api_key: str, months: int = 12) -> Dict[str, pd.DataFrame]:
@@ -171,13 +172,15 @@ class DataManager:
         df["date"] = df["date"].dt.date
         df = (
             df.groupby("date")
-            .agg({
-                "open": "first",
-                "high": "max",
-                "low": "min",
-                "close": "last",
-                "volume": "sum",
-            })
+            .agg(
+                {
+                    "open": "first",
+                    "high": "max",
+                    "low": "min",
+                    "close": "last",
+                    "volume": "sum",
+                }
+            )
             .reset_index()
         )
         df["date"] = pd.to_datetime(df["date"])
@@ -194,14 +197,7 @@ class DataManager:
         return missing.tolist()
 
     def fetch_yahoo_data(self, tickers: List[str], start_date: str, end_date: str) -> Dict[str, pd.DataFrame]:
-        data = yf.download(
-            tickers,
-            start=start_date,
-            end=end_date,
-            progress=False,
-            auto_adjust=True,
-            threads=False
-        )
+        data = yf.download(tickers, start=start_date, end=end_date, progress=False, auto_adjust=True, threads=False)
         result = {}
         for ticker in tickers:
             try:
