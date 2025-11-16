@@ -10,7 +10,7 @@ import os
 import sys
 import time
 from calendar import monthrange
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict
 
 import pandas as pd
@@ -30,7 +30,6 @@ SERIES = {
 DEFAULT_MONTH_SPAN = 12
 
 RAW_DIR = "data/raw"
-
 
 
 # create data/raw dir
@@ -218,26 +217,25 @@ def main():
 
     fetch_and_save(args.api_key, args.months)
 
-
     tickers = ["MOVE", "TLT"]
     start_date = _n_months_ago(datetime.strptime("2025-11-01", "%Y-%m-%d"), DEFAULT_MONTH_SPAN)
     end_date = datetime.now(timezone.utc)
-    
+
     data = yf.download(
-        tickers, 
-        start=start_date, 
-        end=end_date + timedelta(days=1), 
+        tickers,
+        start=start_date,
+        end=end_date + timedelta(days=1),
         progress=False,
         auto_adjust=True,
-        threads=False  # It avoids database lock issues
+        threads=False,  # It avoids database lock issues
     )
 
-    #Save MOVE data
-    move_data = data.xs('MOVE', level=1, axis=1)
+    # Save MOVE data
+    move_data = data.xs("MOVE", level=1, axis=1)
     move_data.to_csv(os.path.join(RAW_DIR, "MOVE.csv"))
 
-    #Save TLT data
-    tlt_data = data.xs('TLT', level=1, axis=1)
+    # Save TLT data
+    tlt_data = data.xs("TLT", level=1, axis=1)
     tlt_data.to_csv(os.path.join(RAW_DIR, "TLT.csv"))
 
 

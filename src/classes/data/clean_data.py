@@ -1,7 +1,8 @@
+import os
+
 import pandas as pd
 from pandas.tseries.holiday import USFederalHolidayCalendar
 from pandas.tseries.offsets import CustomBusinessDay
-import os
 
 CLEANED_DIR = "data/cleaned"
 US_BD = CustomBusinessDay(calendar=USFederalHolidayCalendar())  # FRED/US markets
@@ -136,6 +137,7 @@ def group_by_date(df: pd.DataFrame):
     df = df.set_index("date")
     return df
 
+
 if __name__ == "__main__":
 
     # credit_spread_baa_aaa
@@ -208,9 +210,9 @@ if __name__ == "__main__":
     # MOVE
     MOVE = pd.read_csv("data/raw/MOVE.csv")
     MOVE = MOVE.rename(columns={"Date": "date"})
-    MOVE['date'] = pd.to_datetime(MOVE['date'], utc=True).dt.normalize().dt.tz_localize(None)
-    MOVE.set_index('date', inplace=True)
-    MOVE = MOVE[['Open', 'High', 'Low', 'Close', 'Volume']]
+    MOVE["date"] = pd.to_datetime(MOVE["date"], utc=True).dt.normalize().dt.tz_localize(None)
+    MOVE.set_index("date", inplace=True)
+    MOVE = MOVE[["Open", "High", "Low", "Close", "Volume"]]
     MOVE = MOVE.reset_index()
     MOVE = create_rows_for_missing_dates(MOVE)
     MOVE = forward_fill_missing_data(MOVE)
@@ -218,14 +220,14 @@ if __name__ == "__main__":
     MOVE = MOVE.set_index("date")
     MOVE.to_parquet(os.path.join(CLEANED_DIR, "move.parquet"))
     MOVE.to_csv(os.path.join(CLEANED_DIR, "move.csv"))
-    MOVE = MOVE.rename(columns=lambda x: x.lower() + '_MOVE')
+    MOVE = MOVE.rename(columns=lambda x: x.lower() + "_MOVE")
 
     # TLT
     TLT = pd.read_csv("data/raw/TLT.csv")
     TLT = TLT.rename(columns={"Date": "date"})
-    TLT['date'] = pd.to_datetime(TLT['date'], utc=True).dt.normalize().dt.tz_localize(None)
-    TLT.set_index('date', inplace=True)
-    TLT = TLT[['Open', 'High', 'Low', 'Close', 'Volume']]
+    TLT["date"] = pd.to_datetime(TLT["date"], utc=True).dt.normalize().dt.tz_localize(None)
+    TLT.set_index("date", inplace=True)
+    TLT = TLT[["Open", "High", "Low", "Close", "Volume"]]
     TLT = TLT.reset_index()
     TLT = create_rows_for_missing_dates(TLT)
     TLT = forward_fill_missing_data(TLT)
@@ -233,14 +235,14 @@ if __name__ == "__main__":
     TLT = TLT.set_index("date")
     TLT.to_parquet(os.path.join(CLEANED_DIR, "tlt.parquet"))
     TLT.to_csv(os.path.join(CLEANED_DIR, "tlt.csv"))
-    TLT = TLT.rename(columns=lambda x: x.lower() + '_TLT')
+    TLT = TLT.rename(columns=lambda x: x.lower() + "_TLT")
 
     # Merge of all cleaned data
-    df_final = SPY.join(VIX, lsuffix='_SPY', rsuffix='_VIX', how='outer')
-    df_final = df_final.join(curve_10y_2y, how='outer')
-    df_final = df_final.join(spread_baa_aaa, how='outer')
-    df_final = df_final.join(MOVE, how='outer')
-    df_final = df_final.join(TLT, how='outer')
+    df_final = SPY.join(VIX, lsuffix="_SPY", rsuffix="_VIX", how="outer")
+    df_final = df_final.join(curve_10y_2y, how="outer")
+    df_final = df_final.join(spread_baa_aaa, how="outer")
+    df_final = df_final.join(MOVE, how="outer")
+    df_final = df_final.join(TLT, how="outer")
     df_final = df_final.ffill()
     df_final = df_final.dropna()  # Remove any remaining NaN values, so that remains the last year
     df_final.to_csv("data/cleaned/market_macro_merged.csv", index=True, index_label="date")
