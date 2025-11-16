@@ -15,6 +15,7 @@ dependencies = [
     "matplotlib>=3.10.7",
     "numpy>=2.3.4",
     "pandas>=2.3.3",
+    "pre-commit>=4.3.0",
     "pyarrow>=22.0.0",
     "pytest>=9.0.0",
     "requests>=2.32.5",
