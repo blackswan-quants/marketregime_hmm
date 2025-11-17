@@ -12,26 +12,55 @@ logger = logging.getLogger(__name__)
 
 
 def load_spx_vix() -> pd.DataFrame:
-    """Loads SPX and VIX data sets and aligns them on the date index.
+    """Loads SPX and VIX and aligns them to the master calendar (market_macro_merged.parquet).
 
     Returns:
-        DataFrame with columns:
-            - spx_close
-            - vix_close
+    DataFrame with columns:
+        - spx_close
+        - vix_close
+
     """
+
     spx_path = os.path.join(CLEANED_DIR, "spx.parquet")
     vix_path = os.path.join(CLEANED_DIR, "vix.parquet")
+    calendar_path = os.path.join(CLEANED_DIR, "market_macro_merged.parquet")
 
+    macro = pd.read_parquet(calendar_path)
     spx = pd.read_parquet(spx_path)
     vix = pd.read_parquet(vix_path)
 
-    spx = spx.sort_index()
-    vix = vix.sort_index()
+    if "date" in macro.columns:
+        macro["date"] = pd.to_datetime(macro["date"])
+        macro = macro.set_index("date")
+    else:
+        macro.index = pd.to_datetime(macro.index)
 
+    calendar = macro.index
+
+    if "date" in spx.columns:
+        spx["date"] = pd.to_datetime(spx["date"])
+        spx = spx.set_index("date")
+    else:
+        spx.index = pd.to_datetime(spx.index)
+
+    if "date" in vix.columns:
+        vix["date"] = pd.to_datetime(vix["date"])
+        vix = vix.set_index("date")
+    else:
+        vix.index = pd.to_datetime(vix.index)
+
+    # Reindexing to calendar and forward filling of missing values
+    spx = spx.reindex(calendar).ffill()
+    vix = vix.reindex(calendar).ffill()
+
+    # Renaming the columns
     spx = spx[["close"]].rename(columns={"close": "spx_close"})
     vix = vix[["close"]].rename(columns={"close": "vix_close"})
 
-    df = spx.join(vix, how="inner").sort_index()
+    df = pd.DataFrame(index=calendar)
+    df["spx_close"] = spx["spx_close"]
+    df["vix_close"] = vix["vix_close"]
+
     return df
 
 
@@ -39,24 +68,52 @@ def load_spx_vix() -> pd.DataFrame:
 
 
 def log_return(prices: pd.Series, window: int) -> pd.Series:
-    """Log-return over window days: ln(Pt) - ln(P{t_window})."""
+    """Log-return over window days: ln(Pt) - ln(P{t_window}).
+    Args:
+        prices (pd.Series): Price series indexed by date.
+        window (int): Rolling window length in days.
+
+    Returns:
+        pd.Series: Log-return series.
+
+
+    """
     return np.log(prices).diff(window)
 
 
 def realized_vol(returns_1d: pd.Series, window: int) -> pd.Series:
-    """Realized volatility over a rolling window, annualized."""
+    """Realized volatility over a rolling window, annualized.
+
+    Args:
+        returns_1d (pd.Series): Daily log returns indexed by date.
+        window (int): Rolling window length in days.
+
+    Returns:
+        pd.Series: Annualized realized volatility series.
+
+
+    """
     rolling_var = returns_1d.pow(2).rolling(window=window).mean()
     return np.sqrt(TRADING_DAYS * rolling_var)
 
 
 def ewma_vol(returns_1d: pd.Series, halflife: int) -> pd.Series:
-    """EWMA volatility estimate, annualized."""
+    """EWMA volatility estimate, annualized.
+
+    Args:
+        returns_1d (pd.Series): Daily log returns indexed by date.
+        halflife (int): EWMA decay halflife in days.
+
+    Returns:
+        pd.Series: Annualized EWMA volatility series.
+
+    """
     ewma_var = returns_1d.pow(2).ewm(halflife=halflife, adjust=False).mean()
     return np.sqrt(TRADING_DAYS * ewma_var)
 
 
 def compute_max_drawdown_window(window_prices: pd.Series) -> float:
-    """Compute max drawdown inside a window of prices.
+    """Computes max drawdown inside a window of prices.
     Max drawdown = worst drop from a previous peak in this window.
     Args:
         window_prices: Prices in the current rolling window.
