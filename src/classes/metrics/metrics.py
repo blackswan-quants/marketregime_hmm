@@ -39,7 +39,7 @@ def load_spx_vix() -> pd.DataFrame:
 
 
 def log_return(prices: pd.Series, window: int) -> pd.Series:
-    """Log-return over window days: ln(P_t) - ln(P_{t-window})."""
+    """Log-return over window days: ln(Pt) - ln(P{t_window})."""
     return np.log(prices).diff(window)
 
 
@@ -65,7 +65,7 @@ def compute_max_drawdown_window(window_prices: pd.Series) -> float:
         The most negative drawdown value in the window.
     """
     running_peak = window_prices.cummax()
-    drawdowns = window_prices / running_peak - 1.0
+    drawdowns = (window_prices - running_peak) / running_peak
     return drawdowns.min()  # lowest value
 
 
@@ -150,7 +150,7 @@ def main():
     df_inputs = load_spx_vix()
     df_features = build_market_features(df_inputs)
     save_market_features(df_features)
-    print(df_features.tail())
+    logger.info("\n%s", df_features.tail())
 
 
 if __name__ == "__main__":
