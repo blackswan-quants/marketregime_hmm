@@ -225,7 +225,7 @@ def add_x2_beta_features(df: pd.DataFrame) -> pd.DataFrame:
     for window in (42, 63):
         cov = df["SPX_ret"].rolling(window).cov(df["TLT_ret"])
         var = df["TLT_ret"].rolling(window).var()
-        df[f"X2_beta_{window}"] = cov / var
+        df[f"X2_beta_{window}"] = np.where(var != 0, cov / var, np.nan)
 
     # EWMA betas.
     for halflife in (10, 20):
@@ -233,7 +233,7 @@ def add_x2_beta_features(df: pd.DataFrame) -> pd.DataFrame:
             df["TLT_ret"]
         )
         var_ewm = df["TLT_ret"].ewm(halflife=halflife, adjust=False).var()
-        df[f"X2_beta_ewm_hl{halflife}"] = cov_ewm / var_ewm
+        df[f"X2_beta_ewm_hl{halflife}"] = np.where(var_ewm != 0, cov_ewm / var_ewm, np.nan)
 
     return df
 
@@ -322,7 +322,6 @@ def build_cross_asset_features(
         filename=spx_filename,
         column_name="SPX",
         date_col="date",
-        value_col="close",   # lowercase for spx.parquet
     )
 
     tlt = load_series(
@@ -330,7 +329,6 @@ def build_cross_asset_features(
         filename=tlt_filename,
         column_name="TLT",
         date_col="date",
-        value_col="Close",   # uppercase for tlt.parquet
     )
 
     move = load_series(
@@ -338,7 +336,6 @@ def build_cross_asset_features(
         filename=move_filename,
         column_name="MOVE",
         date_col="date",
-        value_col="Close",   # uppercase for move.parquet
     )
 
     # Align on common calendar (SPX ∩ TLT ∩ MOVE).
