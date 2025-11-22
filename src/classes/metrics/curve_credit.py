@@ -4,8 +4,8 @@ from pathlib import Path
 import pandas as pd
 
 
-def build_paths() -> tuple[Path, Path, Path, Path]:
-    """Build paths to cleaned input CSVs and processed parquet output.
+def build_paths() -> tuple[Path, Path, Path, Path, Path]:
+    """Build paths to cleaned input CSVs and processed outputs.
 
     Assumes the directory structure:
 
@@ -17,14 +17,19 @@ def build_paths() -> tuple[Path, Path, Path, Path]:
                     credit_spread.csv
                 processed/
                     curve_credit_features.parquet
+                    curve_credit_features.csv
             src/
                 classes/
                     metrics/
                         curve_credit.py
 
     Returns:
-        tuple[Path, Path, Path, Path]: Paths to dgs10.csv, dgs2.csv,
-        credit_spread.csv, and curve_credit_features.parquet.
+        tuple[Path, Path, Path, Path, Path]: Paths to:
+            - dgs10.csv
+            - dgs2.csv
+            - credit_spread.csv
+            - curve_credit_features.parquet
+            - curve_credit_features.csv
     """
     root_dir = Path(__file__).resolve().parents[3]
     cleaned_dir = root_dir / "data" / "cleaned"
@@ -33,9 +38,10 @@ def build_paths() -> tuple[Path, Path, Path, Path]:
     dgs10_path = cleaned_dir / "dgs10.csv"
     dgs2_path = cleaned_dir / "dgs2.csv"
     credit_spread_path = cleaned_dir / "credit_spread.csv"
-    output_path = processed_dir / "curve_credit_features.parquet"
+    parquet_path = processed_dir / "curve_credit_features.parquet"
+    csv_path = processed_dir / "curve_credit_features.csv"
 
-    return dgs10_path, dgs2_path, credit_spread_path, output_path
+    return dgs10_path, dgs2_path, credit_spread_path, parquet_path, csv_path
 
 
 def load_series(
@@ -115,7 +121,7 @@ def build_curve_credit_features() -> pd.DataFrame:
     Raises:
         ValueError: If missing credit spread values remain after merge.
     """
-    dgs10_path, dgs2_path, credit_spread_path, _ = build_paths()
+    dgs10_path, dgs2_path, credit_spread_path, _, _ = build_paths()
 
     logging.info("Loading DGS10, DGS2 and credit spread series.")
     dgs10 = load_series(dgs10_path)
@@ -146,15 +152,19 @@ def build_curve_credit_features() -> pd.DataFrame:
 
 
 def save_curve_credit_features(df: pd.DataFrame) -> None:
-    """Save curve + credit features to parquet.
+    """Save curve + credit features to parquet and CSV.
 
     Args:
         df (pd.DataFrame): Features DataFrame to save.
     """
-    _, _, _, output_path = build_paths()
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    logging.info("Saving curve_credit_features.parquet to %s", output_path)
-    df.to_parquet(output_path, index=False)
+    _, _, _, parquet_path, csv_path = build_paths()
+    parquet_path.parent.mkdir(parents=True, exist_ok=True)
+
+    logging.info("Saving curve_credit_features.parquet to %s", parquet_path)
+    df.to_parquet(parquet_path, index=False)
+
+    logging.info("Saving curve_credit_features.csv to %s", csv_path)
+    df.to_csv(csv_path, index=False)
 
 
 def main() -> None:
