@@ -47,6 +47,7 @@ DEFAULT_OUTPUT_PATH = DATA_PROCESSED_DIR / "cross_asset_features.parquet"
 # Utilities
 # ---------------------------------------------------------------------------
 
+
 def load_series(
     input_dir: Union[str, Path],
     filename: str,
@@ -100,10 +101,7 @@ def load_series(
         candidates = ["close", "Close", "adj_close", "Adj Close", "Open", "open"]
         found = [c for c in candidates if c in df.columns]
         if not found:
-            raise ValueError(
-                f"Could not infer value column for {filename}. "
-                f"Available columns: {list(df.columns)}"
-            )
+            raise ValueError(f"Could not infer value column for {filename}. " f"Available columns: {list(df.columns)}")
         value_col = found[0]
 
     df = df[[value_col]].rename(columns={value_col: column_name})
@@ -152,6 +150,7 @@ def add_zscore_columns(
 # Cross-asset feature construction helpers
 # ---------------------------------------------------------------------------
 
+
 def compute_log_returns(df: pd.DataFrame, price_col: str) -> pd.Series:
     """Computes log returns from a price series.
 
@@ -182,18 +181,10 @@ def add_x1_correlation_features(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     window_corr = 42
 
-    df["X1_corr_42"] = (
-        df["SPX_ret"]
-        .rolling(window_corr)
-        .corr(df["TLT_ret"])
-    )
+    df["X1_corr_42"] = df["SPX_ret"].rolling(window_corr).corr(df["TLT_ret"])
 
     for halflife in (10, 20):
-        df[f"X1_corr_ewm_hl{halflife}"] = (
-            df["SPX_ret"]
-            .ewm(halflife=halflife, adjust=False)
-            .corr(df["TLT_ret"])
-        )
+        df[f"X1_corr_ewm_hl{halflife}"] = df["SPX_ret"].ewm(halflife=halflife, adjust=False).corr(df["TLT_ret"])
 
     return df
 
@@ -229,9 +220,7 @@ def add_x2_beta_features(df: pd.DataFrame) -> pd.DataFrame:
 
     # EWMA betas.
     for halflife in (10, 20):
-        cov_ewm = df["SPX_ret"].ewm(halflife=halflife, adjust=False).cov(
-            df["TLT_ret"]
-        )
+        cov_ewm = df["SPX_ret"].ewm(halflife=halflife, adjust=False).cov(df["TLT_ret"])
         var_ewm = df["TLT_ret"].ewm(halflife=halflife, adjust=False).var()
         df[f"X2_beta_ewm_hl{halflife}"] = np.where(var_ewm != 0, cov_ewm / var_ewm, np.nan)
 
@@ -291,6 +280,7 @@ def add_move_features(df: pd.DataFrame) -> pd.DataFrame:
 # ---------------------------------------------------------------------------
 # Main builder
 # ---------------------------------------------------------------------------
+
 
 def build_cross_asset_features(
     input_dir: Union[str, Path] = DEFAULT_INPUT_DIR,
