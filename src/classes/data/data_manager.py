@@ -493,21 +493,25 @@ class DataManager:
         spy = self.load_csv("SPY_1min_20231027_20251027.csv")
         spy = self.clean_price_data(spy, "SPY")
         spy_missing = self.missing_dates(spy)
+        spy = spy.ffill()
         self.save_processed_data(spy, name="spx")
 
         # Load and clean VIX
         vix = self.load_csv("^VIX_1day_20231027_20251027.csv")
         vix = self.clean_price_data(vix, "VIX")
+        vix = vix.ffill()
         self.save_processed_data(vix, name="vix")
 
         # Load and clean MOVE
         move = self.load_csv("MOVE.csv")
         move = self.clean_price_data(move, "MOVE")
+        move = move.ffill()
         self.save_processed_data(move, name="move")
 
         # Load and clean TLT
         tlt = self.load_csv("TLT.csv")
         tlt = self.clean_price_data(tlt, "TLT")
+        tlt = tlt.ffill()
         self.save_processed_data(tlt, name="tlt")
 
         # Merge all datasets
