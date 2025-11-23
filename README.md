@@ -35,3 +35,12 @@ Python dependencies and tools are managed with UV. This is how to install a libr
 uv add pandas  # code dependencies
 uv add --dev black # development tools
 ```
+
+## Code Quality
+
+Pre-commit hooks run black, isort, and flake8 on all commits:
+
+```sh
+uv run pre-commit install  # one-time setup
+uv run pre-commit run --all-files  # manual run
+```
