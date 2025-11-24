@@ -11,6 +11,7 @@ Outputs: PNG files saved to reports/figures/
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 import seaborn as sns
 from pathlib import Path
 from typing import Optional, Tuple, Dict
@@ -68,6 +69,11 @@ def load_and_merge_data(
     print(f"Loading features from {features_path}...")
     features_df = pd.read_parquet(features_path)
     
+    # Set date column as index if it exists
+    if 'date' in features_df.columns:
+        features_df['date'] = pd.to_datetime(features_df['date'])
+        features_df.set_index('date', inplace=True)
+    
     print(f"Loading labels from {labels_path}...")
     labels_df = pd.read_csv(labels_path, index_col=0, parse_dates=True)
     
@@ -104,10 +110,12 @@ def plot_regime_timeline(
     
     fig, ax = plt.subplots(figsize=(14, 6))
     
-    # Calculate cumulative returns (log scale)
+    # Calculate cumulative returns from SPX price
     df_plot = df.copy()
-    df_plot["cumulative_returns"] = (1 + df_plot[price_col].pct_change()).cumprod()
-    df_plot["cumulative_returns"] = df_plot["cumulative_returns"] / df_plot["cumulative_returns"].iloc[0]
+    price_col = FEATURE_CONFIG.get("spx_price", "spx_close")
+    
+    # Calculate cumulative returns: price_t / price_0
+    df_plot["cumulative_returns"] = df_plot[price_col] / df_plot[price_col].iloc[0]
     
     # Get unique regimes and their indices
     regimes = df_plot[regime_col].unique()
@@ -124,7 +132,7 @@ def plot_regime_timeline(
             # End previous regime block if exists
             if current_regime is not None and regime_start is not None:
                 color = REGIME_COLORS.get(current_regime, "#95a5a6")
-                ax.axvspan(regime_start, idx, alpha=0.2, color=color)
+                ax.axvspan(regime_start, idx, alpha=0.2, color=color, zorder=1)
             
             # Start new regime block
             current_regime = regime
@@ -133,24 +141,29 @@ def plot_regime_timeline(
     # Handle last regime block
     if current_regime is not None and regime_start is not None:
         color = REGIME_COLORS.get(current_regime, "#95a5a6")
-        ax.axvspan(regime_start, df_plot.index[-1], alpha=0.2, color=color)
+        ax.axvspan(regime_start, df_plot.index[-1], alpha=0.2, color=color, zorder=1)
     
-    # Plot price line
+    # Plot price line on top (higher zorder)
     ax.plot(
         df_plot.index,
         df_plot["cumulative_returns"],
         color="black",
-        linewidth=2,
-        label="SPX Cumulative Return"
+        linewidth=2.5,
+        label="SPX Cumulative Return",
+        zorder=10
     )
     
     # Styling
     ax.set_xlabel("Date", fontsize=12)
-    ax.set_ylabel("Cumulative Return (Log Scale)", fontsize=12)
+    ax.set_ylabel("Cumulative Return", fontsize=12)
     ax.set_title("SPX Price with Market Regime Background", fontsize=14, fontweight="bold")
-    ax.set_yscale("log")
     ax.grid(True, alpha=0.3)
     ax.legend(loc="best", fontsize=10)
+    
+    # Format x-axis with actual dates
+    ax.xaxis.set_major_locator(mdates.MonthLocator())  # Show every month
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
+    plt.xticks(rotation=45, ha='right')
     
     plt.tight_layout()
     print(f"Saving regime timeline to {output_path}...")

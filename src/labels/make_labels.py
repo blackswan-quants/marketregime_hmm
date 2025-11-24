@@ -145,7 +145,14 @@ def make_labels(input_path: Optional[Path] = None, output_path: Optional[Path] =
     # Load data
     print(f"Loading features from {input_path}...")
     df = pd.read_parquet(input_path)
+    
+    # Set date column as index if it exists
+    if 'date' in df.columns:
+        df['date'] = pd.to_datetime(df['date'])
+        df.set_index('date', inplace=True)
+    
     print(f"Loaded {df.shape[0]} rows, {df.shape[1]} columns")
+    print(f"Date range: {df.index.min()} to {df.index.max()}")
     
     # TODO: Update FEATURE_COLUMNS dict when P2 completes
     # Check if expected columns exist; if not, attempt auto-detection
