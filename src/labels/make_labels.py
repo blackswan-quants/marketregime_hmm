@@ -26,19 +26,19 @@ from typing import Optional
 
 FEATURE_COLUMNS = {
     # Volatility feature (for tertiles)
-    "volatility": "vol_ewma_20",  # EWMA volatility with halflife 20
+    "volatility": "V1",  # EWMA volatility
     
     # Momentum features
-    "momentum_short": "spx_mom_10",  # 10-day momentum
-    "momentum_long": "spx_mom_42",   # 42-day momentum
+    "momentum_short": "R1",  # 10-day momentum
+    "momentum_long": "R2",   # 42-day momentum
     
     # Risk indicators
-    "vix_ewma_ratio": "vix_ewma_ratio",  # VIX / EWMA Vol
-    "yc_slope": "yc_slope_10_2",  # Yield curve slope (10y - 2y)
-    "credit_spread_change": "credit_spread_diff_21",  # 21-day change in credit spread
+    "vix_ewma_ratio": "V2",  # VIX / EWMA Vol ratio
+    "yc_slope": "M1",  # Yield curve slope (10y - 2y)
+    "credit_spread_change": "M2",  # Credit spread change
     
     # Returns (for validation/reporting)
-    "returns_1d": "spx_ret_1d",  # 1-day log returns
+    "returns_1d": "D1",  # 1-day returns
 }
 
 INPUT_PARQUET = Path("data/processed/features_dataset.parquet")

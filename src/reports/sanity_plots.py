@@ -27,10 +27,10 @@ FEATURES_PARQUET = Path("data/processed/features_dataset.parquet")
 LABELS_CSV = Path("data/processed/labels_prelim.csv")
 FIGURES_DIR = Path("reports/figures")
 
-# Column name mapping - update when P2 completes
+# Column name mapping - P2 output columns
 FEATURE_CONFIG = {
     "spx_price": "spx_close",  # SPX close price
-    "returns_1d": "spx_ret_1d",  # 1-day log returns (for stats)
+    "returns_1d": "D1",  # 1-day returns
 }
 
 # Plot styling
@@ -112,35 +112,28 @@ def plot_regime_timeline(
     # Get unique regimes and their indices
     regimes = df_plot[regime_col].unique()
     
-    # Add colored background for each regime
-    for regime in regimes:
-        mask = df_plot[regime_col] == regime
-        regime_dates = df_plot.index[mask]
-        color = REGIME_COLORS.get(regime, "#95a5a6")
+    # Add colored background for each regime by finding continuous blocks
+    current_regime = None
+    regime_start = None
+    
+    for i, (idx, row) in enumerate(df_plot.iterrows()):
+        regime = row[regime_col]
         
-        # Find continuous segments of the same regime
-        date_groups = pd.Series(regime_dates).diff()
-        date_groups[date_groups.notna()] = 1
-        date_groups = date_groups.fillna(0).astype(bool)
-        
-        # Plot background color spans
-        for i, date in enumerate(regime_dates):
-            if i == 0 or date_groups.iloc[i]:
-                # Find the span of this regime segment
-                start_idx = i
-                end_idx = i
-                while end_idx + 1 < len(regime_dates) and (
-                    regime_dates[end_idx + 1] - regime_dates[end_idx]
-                ).days <= 1:
-                    end_idx += 1
-                
-                ax.axvspan(
-                    regime_dates[start_idx],
-                    regime_dates[min(end_idx + 1, len(regime_dates) - 1)],
-                    alpha=0.2,
-                    color=color,
-                    label=regime if i == 0 or regime not in [l.get_label() for l in ax.patches] else None
-                )
+        # Regime changed or last row
+        if regime != current_regime:
+            # End previous regime block if exists
+            if current_regime is not None and regime_start is not None:
+                color = REGIME_COLORS.get(current_regime, "#95a5a6")
+                ax.axvspan(regime_start, idx, alpha=0.2, color=color)
+            
+            # Start new regime block
+            current_regime = regime
+            regime_start = idx
+    
+    # Handle last regime block
+    if current_regime is not None and regime_start is not None:
+        color = REGIME_COLORS.get(current_regime, "#95a5a6")
+        ax.axvspan(regime_start, df_plot.index[-1], alpha=0.2, color=color)
     
     # Plot price line
     ax.plot(
@@ -307,7 +300,7 @@ This report summarizes the results of regime label generation and sanity checks.
 
 ## 1. Dataset Summary
 - **Total Observations:** {df.shape[0]}
-- **Date Range:** {df.index.min().date()} to {df.index.max().date()}
+- **Date Range:** {pd.Timestamp(df.index.min()).date()} to {pd.Timestamp(df.index.max()).date()}
 - **Features Used:** {', '.join([c for c in df.columns if c not in ['vol_bucket', 'risk_regime']])}
 
 ---
@@ -346,7 +339,7 @@ This report summarizes the results of regime label generation and sanity checks.
 - **Observation Count:** {len(risk_on_stats)}
 - **Win Rate:** {(risk_on_stats > 0).mean() * 100:.2f}%
 
-**Expected:** Positive returns, lower volatility ✓
+**Expected:** Positive returns, lower volatility [OK]
 """
     
     report += f"""
@@ -361,7 +354,7 @@ This report summarizes the results of regime label generation and sanity checks.
 - **Observation Count:** {len(risk_off_stats)}
 - **Win Rate:** {(risk_off_stats > 0).mean() * 100:.2f}%
 
-**Expected:** Negative/low returns, higher volatility ✓
+**Expected:** Negative/low returns, higher volatility [OK]
 """
     
     report += f"""
@@ -376,15 +369,15 @@ This report summarizes the results of regime label generation and sanity checks.
 ---
 
 ## Validation Checklist
-- [x] No NaN values in output labels
-- [x] All dates covered (no gaps)
-- [x] Label distributions are reasonable
-- [x] Risk-Off shows higher volatility
-- [x] Regime transitions are smooth
+- [X] No NaN values in output labels
+- [X] All dates covered (no gaps)
+- [X] Label distributions are reasonable
+- [X] Risk-Off shows higher volatility
+- [X] Regime transitions are smooth
 
 ---
 
-**Status:** ✅ READY FOR HANDOFF TO P7
+**Status:** READY FOR HANDOFF TO P7
 
 """
     
