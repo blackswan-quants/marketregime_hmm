@@ -44,7 +44,9 @@ def build_paths() -> tuple[Path, Path, Path, Path, Path]:
     return dgs10_path, dgs2_path, credit_spread_path, parquet_path, csv_path
 
 
-def load_series(path: Path, date_col: str = "date", value_col: str = "value") -> pd.DataFrame:
+def load_series(
+    path: Path, date_col: str = "date", value_col: str = "value"
+) -> pd.DataFrame:
     """Load a time series CSV with a date and value column.
 
     Args:
@@ -60,7 +62,9 @@ def load_series(path: Path, date_col: str = "date", value_col: str = "value") ->
     return df
 
 
-def compute_curve_slope(dgs10: pd.DataFrame, dgs2: pd.DataFrame) -> pd.DataFrame:
+def compute_curve_slope(
+    dgs10: pd.DataFrame, dgs2: pd.DataFrame
+) -> pd.DataFrame:
     """Compute the 10-year minus 2-year Treasury yield slope.
 
     Args:
@@ -128,7 +132,10 @@ def build_curve_credit_features() -> pd.DataFrame:
     curve = compute_curve_slope(dgs10, dgs2).sort_values("date")
 
     logging.info("Preparing credit spread series.")
-    credit = credit_spread.sort_values("date")[["date", "value"]].rename(columns={"value": "credit_spread_baa_aaa"})
+    credit = (
+        credit_spread.sort_values("date")[["date", "value"]]
+        .rename(columns={"value": "credit_spread_baa_aaa"})
+    )
 
     logging.info("Merging curve slope with credit spreads using merge_asof.")
     features = pd.merge_asof(
