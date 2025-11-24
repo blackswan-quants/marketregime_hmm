@@ -3,14 +3,14 @@
 ## Overview
 This report summarizes the results of regime label generation and sanity checks.
 
-**Generated:** 2025-11-24 16:49:37
+**Generated:** 2025-11-24 17:16:44
 
 ---
 
 ## 1. Dataset Summary
 - **Total Observations:** 183
-- **Date Range:** 1970-01-01 to 1970-01-01
-- **Features Used:** date, spx_close, vix_close, R1, R2, M1, M2, V1, V2, V3_hl10, V3_hl20, S1_hl10, S1_hl20, D1, curve_10y_2y, credit_spread_baa_aaa, X1_corr_42, X1_corr_ewm_hl10, X1_corr_ewm_hl20, X2_beta_42, X2_beta_63, X2_beta_ewm_hl10, X2_beta_ewm_hl20, X3_mom_diff_42, M_LV_MOVE_level, M_CH_MOVE_d14, M_CH_MOVE_d21, spx_close_z, vix_close_z, R1_z, R2_z, M1_z, M2_z, V1_z, V2_z, V3_hl10_z, V3_hl20_z, S1_hl10_z, S1_hl20_z, D1_z, curve_10y_2y_z, credit_spread_baa_aaa_z, X1_corr_42_z, X1_corr_ewm_hl10_z, X1_corr_ewm_hl20_z, X2_beta_42_z, X2_beta_63_z, X2_beta_ewm_hl10_z, X2_beta_ewm_hl20_z, X3_mom_diff_42_z, M_LV_MOVE_level_z, M_CH_MOVE_d14_z, M_CH_MOVE_d21_z
+- **Date Range:** 2025-02-05 to 2025-10-27
+- **Features Used:** spx_close, vix_close, R1, R2, M1, M2, V1, V2, V3_hl10, V3_hl20, S1_hl10, S1_hl20, D1, curve_10y_2y, credit_spread_baa_aaa, X1_corr_42, X1_corr_ewm_hl10, X1_corr_ewm_hl20, X2_beta_42, X2_beta_63, X2_beta_ewm_hl10, X2_beta_ewm_hl20, X3_mom_diff_42, M_LV_MOVE_level, M_CH_MOVE_d14, M_CH_MOVE_d21, spx_close_z, vix_close_z, R1_z, R2_z, M1_z, M2_z, V1_z, V2_z, V3_hl10_z, V3_hl20_z, S1_hl10_z, S1_hl20_z, D1_z, curve_10y_2y_z, credit_spread_baa_aaa_z, X1_corr_42_z, X1_corr_ewm_hl10_z, X1_corr_ewm_hl20_z, X2_beta_42_z, X2_beta_63_z, X2_beta_ewm_hl10_z, X2_beta_ewm_hl20_z, X3_mom_diff_42_z, M_LV_MOVE_level_z, M_CH_MOVE_d14_z, M_CH_MOVE_d21_z
 
 ---
 
@@ -72,6 +72,10 @@ Neutral       4
 - [X] Regime transitions are smooth
 
 ---
+
+## Notes
+- Credit-spread change (`M2`) stays positive on essentially the entire sample, so the current risk-off rule `(M2 > 0)` dominates and keeps June–October 2025 labeled Risk-Off despite the price recovery. We should revisit that threshold/logic before relying on these regimes downstream.
+
 
 **Status:** READY FOR HANDOFF TO P7
 
