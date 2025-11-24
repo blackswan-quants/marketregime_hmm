@@ -5,16 +5,21 @@ This module consolidates all data operations (fetching, loading, and cleaning)
 from the data team into a single DataManager class.
 """
 
+import logging
+import os
 import time
 from calendar import monthrange
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 
 import pandas as pd
 import requests
+import yfinance as yf
 from pandas.tseries.holiday import USFederalHolidayCalendar
 from pandas.tseries.offsets import CustomBusinessDay
+
+logger = logging.getLogger(__name__)
 
 # Configure US business days (excluding federal holidays)
 US_BD = CustomBusinessDay(calendar=USFederalHolidayCalendar())
@@ -49,7 +54,7 @@ class DataManager:
         """
         if data_dir is None:
             # Default to project root/data
-            self.data_dir = Path(__file__).parent.parent.parent / "data"
+            self.data_dir = Path(__file__).parent.parent.parent.parent / "data"
         else:
             self.data_dir = Path(data_dir)
 
@@ -164,6 +169,34 @@ class DataManager:
             self._save_csv(yc, "yield_curve_10y_2y_spread")
             self.data["yield_curve_10y_2y_spread"] = yc
         return frames
+
+    def fetch_and_save_yfinance_data(self, months: int):
+        """
+        Fetch data from Yahoo Finance and save as raw CSVs.
+
+        Args:
+            months: Number of months to fetch (default 12)
+        """
+        tickers = ["MOVE", "TLT"]
+        start_date = self._n_months_ago(datetime.strptime("2025-11-01", "%Y-%m-%d"), months)
+        end_date = datetime.now(timezone.utc)
+
+        data = yf.download(
+            tickers,
+            start=start_date,
+            end=end_date + timedelta(days=1),
+            progress=False,
+            auto_adjust=True,
+            threads=False,  # It avoids database lock issues
+        )
+
+        # Save MOVE data
+        move_data = data.xs("MOVE", level=1, axis=1)
+        move_data.to_csv(os.path.join(self.raw_dir, "MOVE.csv"))
+
+        # Save TLT data
+        tlt_data = data.xs("TLT", level=1, axis=1)
+        tlt_data.to_csv(os.path.join(self.raw_dir, "TLT.csv"))
 
     def _save_csv(self, df: pd.DataFrame, name: str) -> None:
         """Save DataFrame to CSV in raw directory."""
@@ -335,7 +368,7 @@ class DataManager:
         Returns:
             Daily aggregated DataFrame with date as index
         """
-        df["date"] = pd.to_datetime(df["date"])
+        df["date"] = pd.to_datetime(df["date"], utc=True)
         df["date"] = df["date"].dt.date
         df = (
             df.groupby("date")
@@ -350,7 +383,7 @@ class DataManager:
             )
             .reset_index()
         )
-        df["date"] = pd.to_datetime(df["date"])
+        df["date"] = pd.to_datetime(df["date"], utc=True).dt.tz_localize(None)
         df = df.set_index("date")
         return df
 
@@ -402,7 +435,7 @@ class DataManager:
 
     def clean_price_data(self, df: pd.DataFrame, name: str) -> pd.DataFrame:
         """
-        Clean price data (SPY, VIX) to daily OHLCV.
+        Clean price data (SPY, VIX, MOVE, TLT) to daily OHLCV.
 
         Args:
             df: Raw intraday DataFrame
@@ -412,6 +445,7 @@ class DataManager:
             Cleaned daily DataFrame with datetime index
         """
         df = df.copy()
+        df.columns = df.columns.str.lower()
         if "caldt" in df.columns:
             df = df.rename(columns={"caldt": "date"})
 
@@ -438,24 +472,54 @@ class DataManager:
         # Load credit spread
         spread_baa_aaa = self.load_csv("credit_spread_baa_aaa.csv")
         spread_baa_aaa = self.clean_macro_data(spread_baa_aaa, "credit_spread_baa_aaa")
+        self.save_processed_data(spread_baa_aaa, name="credit_spread")
+
+        # Load and clean DGS2
+        dgs2 = self.load_csv("DGS2.csv")
+        dgs2 = self.clean_macro_data(dgs2, "dgs2")
+        self.save_processed_data(dgs2, name="dgs2")
+
+        # Load and clean DGS10
+        dgs10 = self.load_csv("DGS10.csv")
+        dgs10 = self.clean_macro_data(dgs10, "dgs10")
+        self.save_processed_data(dgs10, name="dgs10")
 
         # Load yield curve spread
         curve_10y_2y = self.load_csv("yield_curve_10y_2y_spread.csv")
         curve_10y_2y = self.clean_macro_data(curve_10y_2y, "yield_curve_10y2y", check_gaps=True)
+        self.save_processed_data(curve_10y_2y, name="yield_curve_spread")
 
         # Load and clean SPY
         spy = self.load_csv("SPY_1min_20231027_20251027.csv")
         spy = self.clean_price_data(spy, "SPY")
         spy_missing = self.missing_dates(spy)
+        spy = spy.ffill()
+        self.save_processed_data(spy, name="spx")
 
         # Load and clean VIX
         vix = self.load_csv("^VIX_1day_20231027_20251027.csv")
         vix = self.clean_price_data(vix, "VIX")
+        vix = vix.ffill()
+        self.save_processed_data(vix, name="vix")
+
+        # Load and clean MOVE
+        move = self.load_csv("MOVE.csv")
+        move = self.clean_price_data(move, "MOVE")
+        move = move.ffill()
+        self.save_processed_data(move, name="move")
+
+        # Load and clean TLT
+        tlt = self.load_csv("TLT.csv")
+        tlt = self.clean_price_data(tlt, "TLT")
+        tlt = tlt.ffill()
+        self.save_processed_data(tlt, name="tlt")
 
         # Merge all datasets
         df_final = spy.join(vix, lsuffix="_SPY", rsuffix="_VIX", how="outer")
         df_final = df_final.join(curve_10y_2y, how="outer")
         df_final = df_final.join(spread_baa_aaa, how="outer")
+        df_final = df_final.join(move, how="outer")
+        df_final = df_final.join(tlt, how="outer")
 
         # Remove identified missing dates and forward fill
         df_final = df_final.drop(spy_missing, axis=0, errors="ignore")
@@ -466,7 +530,7 @@ class DataManager:
 
         return df_final
 
-    def save_processed_data(self, df: Optional[pd.DataFrame] = None) -> None:
+    def save_processed_data(self, df: Optional[pd.DataFrame] = None, name: str = "market_macro_merged") -> None:
         """
         Save processed data to CSV and Parquet.
 
@@ -482,11 +546,11 @@ class DataManager:
         if df is None:
             raise ValueError("No data to save. Run merge_market_and_macro_data() first.")
 
-        csv_path = self.cleaned_dir / "market_macro_merged.csv"
-        parquet_path = self.cleaned_dir / "market_macro_merged.parquet"
+        csv_path = self.cleaned_dir / f"{name}.csv"
+        parquet_path = self.cleaned_dir / f"{name}.parquet"
 
         df.to_csv(csv_path, index=True, index_label="date")
-        df.to_parquet(parquet_path, index=True)
+        df.reset_index().to_parquet(parquet_path, index=False)
 
     def get_processed_data(self) -> Optional[pd.DataFrame]:
         """
@@ -524,19 +588,118 @@ class DataManager:
             "date_range": (df.index.min(), df.index.max()) if hasattr(df.index, "min") else "N/A",
         }
 
+    # ==================== Validation Methods ====================
+
+    # Datasets to validate
+    DATASETS = [
+        "yield_curve_10y_2y_spread",
+        "^VIX_1day_20231027_20251027",
+        "SPY_1min_20231027_20251027",
+    ]
+
+    # Mapping of dataset filenames to display names
+    DATASET_NAMES = {
+        "SPY_1min_20231027_20251027": "SPY",
+        "yield_curve_10y_2y_spread": "Curve 10y-2y",
+        "^VIX_1day_20231027_20251027": "VIX",
+    }
+
+    def get_missing_business_dates(self, df: pd.DataFrame, freq: str):
+        """Get list of missing business dates in DataFrame.
+
+        Args:
+            df: DataFrame with date column.
+            freq: Frequency string for date range.
+
+        Returns:
+            List of missing dates.
+        """
+        df_copy = df.copy()
+        df_copy["date"] = pd.to_datetime(df_copy["date"], utc=True).dt.normalize().dt.tz_localize(None)
+        df_copy = df_copy.set_index("date").sort_index()
+
+        bday_index = pd.date_range(start=df_copy.index.min(), end=df_copy.index.max(), freq=freq)
+        missing = bday_index.difference(df_copy.index)
+        return missing.tolist()
+
+    def get_null_dates(self, df: pd.DataFrame):
+        """Get dates with null values in DataFrame.
+
+        Args:
+            df: DataFrame to check.
+
+        Returns:
+            List of dates with nulls.
+        """
+        return df[df.isnull().any(axis=1)]["date"].tolist()
+
+    def validation_dataset(self) -> None:
+        """
+        Validate the cleaned dataset for anomalies.
+        """
+        df_missing_dates = []
+        missing_dates_dict = {}
+        note = {
+            "2025-01-09": "There is dirty data in dataset Curve 10y-2y",
+        }
+
+        for name in self.DATASETS:
+            df = pd.read_csv(f"data/raw/{name}.csv")
+            if name not in ["yield_curve_10y_2y_spread"]:
+                df = df.rename(columns={"caldt": "date"})
+                df_missing_dates.extend(self.get_missing_business_dates(df, "B"))
+            else:
+                df_missing_dates.extend(self.get_null_dates(df))
+            df_missing_dates.extend(self.get_missing_business_dates(df, US_BD))
+
+            display_name = self.DATASET_NAMES.get(name, name)
+
+            for date in df_missing_dates:
+                date_str = date if isinstance(date, str) else pd.to_datetime(date).strftime("%Y-%m-%d")
+                missing_dates_dict.setdefault(date_str, []).append(display_name)
+
+        # Remove duplicates and sort
+        for date_str in missing_dates_dict:
+            missing_dates_dict[date_str] = sorted(set(missing_dates_dict[date_str]))
+
+        all_missing_dates = [
+            {
+                "missing_date": date_str,
+                "datasets": ", ".join(datasets),
+                "note": note.get(date_str, ""),
+            }
+            for date_str, datasets in missing_dates_dict.items()
+        ]
+
+        df_missing = pd.DataFrame(all_missing_dates).sort_values(by=["missing_date"])
+        df_missing.to_csv("reports/integrity_report.csv", index=False)
+
 
 if __name__ == "__main__":
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(name)s [%(levelname)s] %(message)s",
+    )
+
     # Example usage
     manager = DataManager()
 
-    # Option 1: Fetch fresh data from FRED
+    # Option 1:
+    # Fetch fresh data from FRED
     # api_key = os.getenv("FRED_API_KEY")
     # if api_key:
     #     manager.fetch_and_save_fred_data(api_key, months=12)
 
+    # Fetch fresh data from yfinance
+    # manager.fetch_and_save_yfinance_data(months=12)
+
     # Option 2: Use existing data and run full pipeline
     merged_df = manager.merge_market_and_macro_data()
-    manager.save_processed_data()
+    manager.save_processed_data(merged_df, "market_macro_merged")
 
-    print("\nData Info:")
-    print(manager.get_data_info())
+    logger.info("\nData Info:")
+    logger.info(manager.get_data_info())
+
+    # Option 3: Validation of the cleaned data
+    manager.validation_dataset()
