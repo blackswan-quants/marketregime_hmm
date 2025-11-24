@@ -16,14 +16,12 @@ Features:
   - X3: Momentum Diff 42d (SPX – TLT)
   - M_LV: MOVE level
   - M_CH: ΔMOVE 14d / 21d
-
-All features are also saved in standardized (z-score) form with suffix '_z'.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterable, Optional, Union
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -46,6 +44,7 @@ DEFAULT_OUTPUT_PATH = DATA_PROCESSED_DIR / "cross_asset_features.parquet"
 # ---------------------------------------------------------------------------
 # Utilities
 # ---------------------------------------------------------------------------
+
 
 def load_series(
     input_dir: Union[str, Path],
@@ -100,57 +99,17 @@ def load_series(
         candidates = ["close", "Close", "adj_close", "Adj Close", "Open", "open"]
         found = [c for c in candidates if c in df.columns]
         if not found:
-            raise ValueError(
-                f"Could not infer value column for {filename}. "
-                f"Available columns: {list(df.columns)}"
-            )
+            raise ValueError(f"Could not infer value column for {filename}. " f"Available columns: {list(df.columns)}")
         value_col = found[0]
 
     df = df[[value_col]].rename(columns={value_col: column_name})
     return df
 
 
-def add_zscore_columns(
-    df: pd.DataFrame,
-    columns: Optional[Iterable[str]] = None,
-    suffix: str = "_z",
-) -> pd.DataFrame:
-    """Adds standardized (z-score) versions of the specified columns.
-
-    For each column `c` in `columns`, a new column `c + suffix` is created as
-    (c - mean(c)) / std(c). Rows with NaN in the original series remain NaN.
-
-    Args:
-      df: Input DataFrame.
-      columns: Iterable of column names to standardize. If None, all numeric
-        columns are used.
-      suffix: Suffix to append to the standardized columns.
-
-    Returns:
-      The input DataFrame with additional z-score columns.
-    """
-    df = df.copy()
-
-    if columns is None:
-        columns = df.select_dtypes(include=[np.number]).columns
-
-    for col in columns:
-        series = df[col]
-        mean = series.mean()
-        std = series.std()
-
-        # Avoid division by zero if std == 0.
-        if std == 0 or np.isnan(std):
-            df[f"{col}{suffix}"] = np.nan
-        else:
-            df[f"{col}{suffix}"] = (series - mean) / std
-
-    return df
-
-
 # ---------------------------------------------------------------------------
 # Cross-asset feature construction helpers
 # ---------------------------------------------------------------------------
+
 
 def compute_log_returns(df: pd.DataFrame, price_col: str) -> pd.Series:
     """Computes log returns from a price series.
@@ -182,18 +141,10 @@ def add_x1_correlation_features(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     window_corr = 42
 
-    df["X1_corr_42"] = (
-        df["SPX_ret"]
-        .rolling(window_corr)
-        .corr(df["TLT_ret"])
-    )
+    df["X1_corr_42"] = df["SPX_ret"].rolling(window_corr).corr(df["TLT_ret"])
 
     for halflife in (10, 20):
-        df[f"X1_corr_ewm_hl{halflife}"] = (
-            df["SPX_ret"]
-            .ewm(halflife=halflife, adjust=False)
-            .corr(df["TLT_ret"])
-        )
+        df[f"X1_corr_ewm_hl{halflife}"] = df["SPX_ret"].ewm(halflife=halflife, adjust=False).corr(df["TLT_ret"])
 
     return df
 
@@ -229,9 +180,7 @@ def add_x2_beta_features(df: pd.DataFrame) -> pd.DataFrame:
 
     # EWMA betas.
     for halflife in (10, 20):
-        cov_ewm = df["SPX_ret"].ewm(halflife=halflife, adjust=False).cov(
-            df["TLT_ret"]
-        )
+        cov_ewm = df["SPX_ret"].ewm(halflife=halflife, adjust=False).cov(df["TLT_ret"])
         var_ewm = df["TLT_ret"].ewm(halflife=halflife, adjust=False).var()
         df[f"X2_beta_ewm_hl{halflife}"] = np.where(var_ewm != 0, cov_ewm / var_ewm, np.nan)
 
@@ -292,6 +241,7 @@ def add_move_features(df: pd.DataFrame) -> pd.DataFrame:
 # Main builder
 # ---------------------------------------------------------------------------
 
+
 def build_cross_asset_features(
     input_dir: Union[str, Path] = DEFAULT_INPUT_DIR,
     spx_filename: str = "spx.parquet",
@@ -304,8 +254,7 @@ def build_cross_asset_features(
       - loads SPX, TLT, MOVE series from parquet,
       - aligns them on a common calendar (inner join),
       - computes SPX/TLT daily log returns,
-      - constructs X1, X2, X3, M_LV, M_CH features,
-      - adds z-score versions of all numeric features.
+      - constructs X1, X2, X3, M_LV, M_CH features.
 
     Args:
       input_dir: Directory containing the cleaned input files.
@@ -314,7 +263,7 @@ def build_cross_asset_features(
       move_filename: Filename for MOVE index in `input_dir`.
 
     Returns:
-      A DataFrame with cross-asset features and their z-scores.
+      A DataFrame with cross-asset features (raw values only).
     """
     # Load base series.
     spx = load_series(
@@ -366,12 +315,7 @@ def build_cross_asset_features(
         "M_CH_MOVE_d21",
     ]
 
-    features = df[feature_cols].copy()
-
-    # Add z-score versions of all features.
-    features = add_zscore_columns(features, columns=feature_cols)
-
-    return features
+    return df[feature_cols].copy()
 
 
 def save_cross_asset_features(
