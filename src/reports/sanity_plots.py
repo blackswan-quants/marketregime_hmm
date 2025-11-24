@@ -168,6 +168,9 @@ def plot_regime_timeline(
     plt.tight_layout()
     print(f"Saving regime timeline to {output_path}...")
     plt.savefig(output_path, dpi=300, bbox_inches="tight")
+    # Also save as SVG for vector graphics
+    svg_path = output_path.with_suffix('.svg')
+    plt.savefig(svg_path, bbox_inches="tight")
     plt.close()
 
 
@@ -261,8 +264,11 @@ def plot_conditional_statistics(
         ax2.text(i, v + 1, f"{v:.1f}%", ha="center", fontsize=10)
     
     plt.tight_layout()
-    print(f"Saving conditional stats to {output_path}...")
+    print(f"Saving conditional statistics to {output_path}...")
     plt.savefig(output_path, dpi=300, bbox_inches="tight")
+    # Also save as SVG for vector graphics
+    svg_path = output_path.with_suffix('.svg')
+    plt.savefig(svg_path, bbox_inches="tight")
     plt.close()
     
     # Print table summary

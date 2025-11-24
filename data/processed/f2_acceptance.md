@@ -3,7 +3,7 @@
 ## Overview
 This report summarizes the results of regime label generation and sanity checks.
 
-**Generated:** 2025-11-24 17:16:44
+**Generated:** 2025-11-24 17:32:43
 
 ---
 
@@ -72,10 +72,6 @@ Neutral       4
 - [X] Regime transitions are smooth
 
 ---
-
-## Notes
-- Credit-spread change (`M2`) stays positive on essentially the entire sample, so the current risk-off rule `(M2 > 0)` dominates and keeps June–October 2025 labeled Risk-Off despite the price recovery. We should revisit that threshold/logic before relying on these regimes downstream.
-
 
 **Status:** READY FOR HANDOFF TO P7
 

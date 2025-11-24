@@ -144,18 +144,19 @@ class TestPipeline(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             tmpdir = Path(tmpdir)
             
-            # Create sample data matching expected columns
+            # Create sample data matching P2 column names
             dates = pd.date_range("2024-01-01", periods=100, freq="D")
             df = pd.DataFrame({
-                "vol_ewma_20": np.random.gamma(2, 2, 100),
-                "spx_mom_10": np.random.uniform(-0.02, 0.02, 100),
-                "spx_mom_42": np.random.uniform(-0.05, 0.05, 100),
-                "vix_ewma_ratio": np.random.uniform(0.5, 1.5, 100),
-                "yc_slope_10_2": np.random.uniform(-0.02, 0.02, 100),
-                "credit_spread_diff_21": np.random.uniform(-0.01, 0.01, 100),
-                "spx_ret_1d": np.random.normal(0.0005, 0.015, 100),
-            }, index=dates)
-            df.index.name = "date"
+                "date": dates,
+                "V1": np.random.gamma(2, 2, 100),  # Volatility
+                "R1": np.random.uniform(-0.02, 0.02, 100),  # 10-day momentum
+                "R2": np.random.uniform(-0.05, 0.05, 100),  # 42-day momentum
+                "V2": np.random.uniform(0.5, 1.5, 100),  # VIX ratio
+                "M1": np.random.uniform(-0.02, 0.02, 100),  # Yield curve slope
+                "M2": np.random.uniform(-0.01, 0.01, 100),  # Credit spread change
+                "D1": np.random.uniform(-0.2, -0.01, 100),  # Drawdown
+                "spx_close": 600 + np.cumsum(np.random.normal(0.5, 5, 100)),  # Price
+            })
             
             # Save to parquet
             input_path = tmpdir / "features.parquet"
