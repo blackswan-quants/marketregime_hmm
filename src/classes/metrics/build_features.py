@@ -1,8 +1,20 @@
 import json
+import logging
+import sys
 from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[3]  # noqa: E402
+sys.path.insert(0, str(PROJECT_ROOT / "src"))  # noqa: E402
 
 from classes.metrics.standardize import Standardizer
 from classes.viz.plotter import Plotter
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+logger = logging.getLogger(__name__)
 
 PROCESSED_DIR = Path("data/processed")
 MARKET_FEATURES_PATH = PROCESSED_DIR / "market_features.parquet"
@@ -69,10 +81,10 @@ def build_features() -> None:
     LOSS_REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(LOSS_REPORT_PATH, "w", encoding="utf-8") as handle:
         json.dump(loss_report, handle, indent=2)
-    print(f"Field-loss report saved to {LOSS_REPORT_PATH}")
+    logger.info(f"Field-loss report saved to {LOSS_REPORT_PATH}")
 
-    print("P2 dataset ready:", DATASET_PATH)
-    print("Rows, columns:", features.shape)
+    logger.info(f"P2 dataset ready: {DATASET_PATH}")
+    logger.info(f"Rows, columns: {features.shape}")
 
 
 if __name__ == "__main__":
