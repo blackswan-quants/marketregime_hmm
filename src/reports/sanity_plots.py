@@ -5,7 +5,7 @@ This module generates diagnostic plots to validate the regime labels:
   1. Regime Timeline: SPX price with regime background shading
   2. Conditional Statistics: Mean daily returns and volatility by regime
 
-Outputs: PNG files saved to reports/figures/
+Outputs: PNG files saved to data/reports/figures/
 """
 
 import pandas as pd
@@ -26,7 +26,7 @@ warnings.filterwarnings("ignore")
 
 FEATURES_PARQUET = Path("data/processed/features_dataset.parquet")
 LABELS_CSV = Path("data/processed/labels_prelim.csv")
-FIGURES_DIR = Path("reports/figures")
+FIGURES_DIR = Path("data/reports/figures")
 
 # Column name mapping - P2 output columns
 FEATURE_CONFIG = {
@@ -433,7 +433,6 @@ def generate_sanity_plots(
     # Load and merge data
     merged_df, features_df = load_and_merge_data(features_path, labels_path)
     
-    # TODO: Update column names when P2 completes
     price_col = FEATURE_CONFIG.get("spx_price")
     returns_col = FEATURE_CONFIG.get("returns_1d")
     
