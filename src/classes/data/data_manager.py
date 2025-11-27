@@ -672,7 +672,7 @@ class DataManager:
         ]
 
         df_missing = pd.DataFrame(all_missing_dates).sort_values(by=["missing_date"])
-        df_missing.to_csv("reports/integrity_report.csv", index=False)
+        df_missing.to_csv("data/reports/integrity_report.csv", index=False)
 
 
 if __name__ == "__main__":
