@@ -1,0 +1,35 @@
+{
+  "alignment_method": "intersection",
+  "source_rows": {
+    "data\\processed\\market_features.parquet": 227,
+    "data\\processed\\curve_credit_features.parquet": 259,
+    "data\\processed\\cross_asset_features.parquet": 246
+  },
+  "source_date_ranges": {
+    "data\\processed\\market_features.parquet": {
+      "start": "2024-12-31",
+      "end": "2025-11-07"
+    },
+    "data\\processed\\curve_credit_features.parquet": {
+      "start": "2024-11-04",
+      "end": "2025-10-30"
+    },
+    "data\\processed\\cross_asset_features.parquet": {
+      "start": "2024-11-01",
+      "end": "2025-10-27"
+    }
+  },
+  "rows_dropped_by_source": {
+    "data\\processed\\market_features.parquet": 20,
+    "data\\processed\\curve_credit_features.parquet": 52,
+    "data\\processed\\cross_asset_features.parquet": 39
+  },
+  "aligned_rows": 207,
+  "aligned_date_range": {
+    "start": "2024-12-31",
+    "end": "2025-10-27"
+  },
+  "final_rows": 183,
+  "na_rows_dropped": 24,
+  "total_rows_lost": 135
+}

@@ -1,7 +1,11 @@
 import logging
-import pandas as pd
+
 import numpy as np
+import pandas as pd
+from scipy.stats import kurtosis, skew
+from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
+from statsmodels.stats.outliers_influence import variance_inflation_factor
 from statsmodels.tsa.stattools import adfuller, kpss
 
 # Configure logging for module-level usage if imported, though usually configured at entry point
@@ -44,9 +48,7 @@ def zscore_check_and_apply(
     is_std_ok = ((stds - 1).abs() < tol_std).all()
     already_standardized = is_mean_ok and is_std_ok
 
-    norm_stats = pd.DataFrame(
-        {"feature": raw_cols, "mean": means.values, "std": stds.values}
-    )
+    norm_stats = pd.DataFrame({"feature": raw_cols, "mean": means.values, "std": stds.values})
 
     if already_standardized:
         z_df_raw = sub_df.copy()
@@ -107,13 +109,9 @@ def run_kpss(series: pd.Series, regression: str = "c") -> dict[str, float | int 
 
     try:
         # Suppress warnings from statsmodels if needed, but usually fine to leave
-        with np.errstate(
-            all="ignore"
-        ):  # Catch warnings as errors if strict, but here just run
+        with np.errstate(all="ignore"):  # Catch warnings as errors if strict, but here just run
             # Note: kpss can issue warnings for interpolation
-            stat, p_value, lags, crit = kpss(
-                clean_series, regression=regression, nlags="auto"
-            )
+            stat, p_value, lags, crit = kpss(clean_series, regression=regression, nlags="auto")
         return {
             "stat": stat,
             "pvalue": p_value,
@@ -124,9 +122,7 @@ def run_kpss(series: pd.Series, regression: str = "c") -> dict[str, float | int 
         return {"stat": np.nan, "pvalue": np.nan, "nobs": len(series), "valid": False}
 
 
-def stationarity_report(
-    df: pd.DataFrame, zscore_cols: list[str], alpha: float = 0.05
-) -> pd.DataFrame:
+def stationarity_report(df: pd.DataFrame, zscore_cols: list[str], alpha: float = 0.05) -> pd.DataFrame:
     """Runs ADF and KPSS tests on zscore_cols and produces a report.
 
     Args:
@@ -216,9 +212,7 @@ def preprocess_and_check_stationarity(
     # 1. Identify raw vs z-scored columns
     all_cols = df.columns
     z_cols_existing = [c for c in all_cols if str(c).endswith("_z")]
-    raw_cols = [
-        c for c in all_cols if c not in ["date"] and not str(c).endswith("_z")
-    ]
+    raw_cols = [c for c in all_cols if c not in ["date"] and not str(c).endswith("_z")]
 
     # --- MODIFICATION 1: Verify existing _z columns ---
     if z_cols_existing:
@@ -231,17 +225,13 @@ def preprocess_and_check_stationarity(
         logger.info("\n%s", z_stats)
 
         if not z_stats["mean_ok"].all() or not z_stats["std_ok"].all():
-            logger.warning(
-                "WARNING: Some existing _z columns do not appear to be standardized!"
-            )
+            logger.warning("WARNING: Some existing _z columns do not appear to be standardized!")
         else:
             logger.info("All existing _z columns appear to be correctly standardized.")
         logger.info("-------------------------------------------")
 
     # 2. Z-score raw columns
-    z_df_raw, norm_stats, already_std = zscore_check_and_apply(
-        df, raw_cols, tol_mean=tol_mean, tol_std=tol_std
-    )
+    z_df_raw, norm_stats, already_std = zscore_check_and_apply(df, raw_cols, tol_mean=tol_mean, tol_std=tol_std)
 
     # 3. Build full standardized dataset
     full_z_df = pd.concat([z_df_raw, df[z_cols_existing]], axis=1)
@@ -262,6 +252,162 @@ def preprocess_and_check_stationarity(
     return full_z_df, norm_stats, stat_report, already_std
 
 
+def compute_distribution_stats(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Compute skewness and kurtosis for each feature in the DataFrame.
+    Kurtosis is Fisher's kurtosis (normal ==> 0.0).
+    """
+    stats = []
+    numeric_cols = df.select_dtypes(include=[np.number]).columns
+
+    for col in numeric_cols:
+        data = df[col].dropna()
+        if len(data) < 3:
+            continue
+
+        sk = skew(data)
+        ku = kurtosis(data)
+
+        stats.append(
+            {
+                "feature": col,
+                "skewness": sk,
+                "kurtosis": ku,
+                "is_approx_normal": (abs(sk) < 1.0) and (abs(ku) < 2.0),
+            }
+        )
+
+    df_stats = pd.DataFrame(stats)
+
+    # Check for significant non-Gaussian properties
+    non_normal = df_stats[~df_stats["is_approx_normal"]]
+    if not non_normal.empty:
+        logger.warning(
+            "The following features show significant non-Gaussian properties (Skew > 1 or Excess Kurtosis > 2):"
+        )
+        logger.warning("\n%s", non_normal[["feature", "skewness", "kurtosis"]])
+        logger.warning(
+            "HMM assumes Gaussian emissions. Consider transformations (e.g., Yeo-Johnson) "
+            "for these features if model performance is poor."
+        )
+    else:
+        logger.info("All features appear approximately Gaussian.")
+
+    return df_stats
+
+
+def compute_vif(df: pd.DataFrame, threshold: float = 5.0) -> pd.DataFrame:
+    """
+    Calculate Variance Inflation Factor (VIF) for each feature.
+    """
+    df_numeric = df.select_dtypes(include=[np.number]).dropna()
+    vif_data = pd.DataFrame()
+    vif_data["feature"] = df_numeric.columns
+
+    # Use values directly for VIF calculation
+    X = df_numeric.values
+    vif_values = []
+
+    for i in range(len(df_numeric.columns)):
+        try:
+            val = variance_inflation_factor(X, i)
+            vif_values.append(val)
+        except Exception:
+            vif_values.append(np.nan)
+
+    vif_data["VIF"] = vif_values
+    vif_data["high_collinearity"] = vif_data["VIF"] > threshold
+
+    return vif_data.sort_values(by="VIF", ascending=False)
+
+
+def reduce_collinearity_via_vif(df: pd.DataFrame, threshold: float = 5.0) -> tuple[pd.DataFrame, list[str]]:
+    """
+    Iteratively removes features with VIF > threshold.
+    Removes the feature with the highest VIF one by one and recomputes VIF.
+
+    Args:
+        df (pd.DataFrame): Input dataframe (numeric columns only).
+        threshold (float): VIF threshold (default 5.0).
+
+    Returns:
+        tuple[pd.DataFrame, list[str]]:
+            - df_reduced: DataFrame with high-VIF features removed.
+            - dropped_features: List of column names that were removed.
+    """
+    df_reduced = df.copy().select_dtypes(include=[np.number])
+    dropped_features = []
+
+    while True:
+        # Calculate VIF for current features
+        features = df_reduced.columns
+        if len(features) < 2:
+            break
+
+        X = df_reduced.values
+        vif_values = []
+        for i in range(len(features)):
+            try:
+                val = variance_inflation_factor(X, i)
+                vif_values.append(val)
+            except Exception:
+                vif_values.append(0.0)
+
+        max_vif = max(vif_values)
+        if max_vif > threshold:
+            # Drop feature with max VIF
+            max_idx = vif_values.index(max_vif)
+            feature_to_drop = features[max_idx]
+            df_reduced = df_reduced.drop(columns=[feature_to_drop])
+            dropped_features.append(feature_to_drop)
+            logger.info(f"Dropped {feature_to_drop} (VIF={max_vif:.2f})")
+        else:
+            break
+
+    return df_reduced, dropped_features
+
+
+def run_pca(
+    df: pd.DataFrame,
+    n_components: float | int = 0.80,
+    columns_to_include: list[str] | None = None,
+) -> tuple[PCA, pd.DataFrame, pd.DataFrame]:
+    """
+    Run PCA on the dataframe.
+
+    Args:
+        df: Input dataframe
+        n_components: If float between 0 and 1, select components to explain variance.
+                      If int >= 1, select that many components.
+        columns_to_include: List of columns to use. If None, use all numeric.
+
+    Returns:
+        tuple containing:
+            - factor_scores (pd.DataFrame): PC scores
+            - explained_variance (np.ndarray): Explained variance ratios
+            - loadings (pd.DataFrame): Principal component loadings
+    """
+    if columns_to_include:
+        data = df[columns_to_include].dropna()
+    else:
+        data = df.select_dtypes(include=[np.number]).dropna()
+
+    if data.empty:
+        raise ValueError("No data available for PCA")
+
+    pca = PCA(n_components=n_components)
+    components = pca.fit_transform(data)
+
+    # Create column names
+    n_comps = components.shape[1]
+    cols = [f"PC{i+1}" for i in range(n_comps)]
+
+    factor_scores = pd.DataFrame(components, index=data.index, columns=cols)
+    loadings = pd.DataFrame(pca.components_.T, index=data.columns, columns=cols)
+
+    return pca, factor_scores, loadings
+
+
 if __name__ == "__main__":
     # Configure logging
     logging.basicConfig(
@@ -278,9 +424,7 @@ if __name__ == "__main__":
         if "date" in df.columns:
             df = df.set_index("date")
 
-        full_z_df, norm_stats, stat_report, already_std = (
-            preprocess_and_check_stationarity(df)
-        )
+        full_z_df, norm_stats, stat_report, already_std = preprocess_and_check_stationarity(df)
 
         logger.info("Normalization Stats (Raw Columns):")
         logger.info("\n%s", norm_stats)
@@ -288,7 +432,24 @@ if __name__ == "__main__":
         logger.info("\n%s", stat_report)
         logger.info("Already Standardized: %s", already_std)
 
+        # --- New Feature Analysis Logic ---
+        logger.info("--- Starting Distribution Analysis ---")
+        dist_stats = compute_distribution_stats(full_z_df)
+        logger.info("\n%s", dist_stats)
+
+        logger.info("--- Starting VIF Analysis ---")
+        vif_stats = compute_vif(full_z_df)
+        logger.info("\n%s", vif_stats)
+
+        logger.info("--- Starting PCA Analysis ---")
+        # Example: Run PCA on all Z-scored columns
+        z_cols = [c for c in full_z_df.columns if c.endswith("_z")]
+        if z_cols:
+            factor_scores, explained_var, loadings = run_pca(full_z_df, n_components=0.80, columns_to_include=z_cols)
+            logger.info("PCA Explained Variance: %s", explained_var)
+            logger.info("Factor Scores Shape: %s", factor_scores.shape)
+        else:
+            logger.warning("No _z columns found for PCA.")
+
     except FileNotFoundError:
-        logger.error(
-            "features_dataset.parquet not found. Please ensure the file is in the working directory."
-        )
+        logger.error("features_dataset.parquet not found. Please ensure the file is in the working directory.")
