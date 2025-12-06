@@ -8,11 +8,10 @@ import pandas as pd
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]  # noqa: E402
 sys.path.insert(0, str(PROJECT_ROOT / "src"))  # noqa: E402
-sys.path.insert(0, str(PROJECT_ROOT))  # Add root to import preprocessing
 
+from classes.metrics.preprocessing import compute_distribution_stats, compute_vif, reduce_collinearity_via_vif, run_pca
 from classes.metrics.standardize import Standardizer
 from classes.viz.plotter import Plotter
-from preprocessing import compute_distribution_stats, compute_vif, reduce_collinearity_via_vif, run_pca
 
 logging.basicConfig(
     level=logging.INFO,
@@ -22,13 +21,14 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 PROCESSED_DIR = Path("data/processed")
+REPORTS_DIR = Path("data/reports")
 MARKET_FEATURES_PATH = PROCESSED_DIR / "market_features.parquet"
 CURVE_CREDIT_PATH = PROCESSED_DIR / "curve_credit_features.parquet"
 CROSS_ASSET_PATH = PROCESSED_DIR / "cross_asset_features.parquet"
 DATASET_PATH = PROCESSED_DIR / "features_dataset.parquet"
-HEATMAP_PATH = PROCESSED_DIR / "corr_heatmap.png"
-DIST_PLOT_PATH = PROCESSED_DIR / "distribution" / "feature_distributions.png"
-LOSS_REPORT_PATH = PROCESSED_DIR / "feature_loss_report.json"
+HEATMAP_PATH = REPORTS_DIR / "figures" / "corr_heatmap.png"
+DIST_PLOT_PATH = REPORTS_DIR / "figures" / "feature_distributions.png"
+LOSS_REPORT_PATH = REPORTS_DIR / "feature_loss_report.json"
 
 # Analysis Outputs
 DIST_STATS_PATH = PROCESSED_DIR / "distribution" / "distribution_stats.csv"
@@ -36,12 +36,13 @@ VIF_PATH = PROCESSED_DIR / "distribution" / "vif_stats.csv"
 HMM_INPUT_DIR = PROCESSED_DIR / "hmm_input"
 HMM_INPUT_PATH = HMM_INPUT_DIR / "hmm_model_input.parquet"
 HMM_INPUT_CSV_PATH = HMM_INPUT_DIR / "hmm_model_input.csv"
-SCREE_DIR = PROCESSED_DIR / "scree"
+SCREE_DIR = REPORTS_DIR / "scree"
 
 
 def build_features() -> None:
     """Execute the full feature build pipeline end-to-end."""
     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
+    SCREE_DIR.mkdir(parents=True, exist_ok=True)
 
     features, alignment_report = Standardizer.load_and_align(
         [
@@ -131,6 +132,7 @@ def build_features() -> None:
             logger.info(f"Running PCA for {cat_name} with {len(col_list)} features...")
 
             # Run PCA (retain 80% variance)
+            variance_threshold = 0.80
             try:
                 # n_components=None means keep all
                 pca, scores_full, loadings_full = run_pca(features, n_components=None, columns_to_include=col_list)
@@ -143,7 +145,7 @@ def build_features() -> None:
                 # n_kaiser = np.sum(eigenvalues > 1.0)
 
                 # Variance Threshold (80% strict)
-                n_var80 = np.argmax(cum_var >= 0.80) + 1
+                n_var80 = np.argmax(cum_var >= variance_threshold) + 1
 
                 # Select N based on user request: 80% Variance
                 n_selected = n_var80
