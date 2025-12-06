@@ -4,60 +4,11 @@ import numpy as np
 import pandas as pd
 from scipy.stats import kurtosis, skew
 from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 from statsmodels.tsa.stattools import adfuller, kpss
 
 # Configure logging for module-level usage if imported, though usually configured at entry point
 logger = logging.getLogger(__name__)
-
-
-def zscore_check_and_apply(
-    df: pd.DataFrame,
-    raw_cols: list[str],
-    tol_mean: float = 1e-1,
-    tol_std: float = 1e-1,
-) -> tuple[pd.DataFrame, pd.DataFrame, bool]:
-    """Checks if raw_cols in df are already z-scored. If not, applies StandardScaler.
-
-    Args:
-        df (pd.DataFrame): Input DataFrame containing the data.
-        raw_cols (list[str]): List of column names to check/normalize.
-        tol_mean (float): Tolerance for mean check (default 0.1).
-        tol_std (float): Tolerance for std check (default 0.1).
-
-    Returns:
-        tuple[pd.DataFrame, pd.DataFrame, bool]:
-            - z_df_raw (pd.DataFrame): DataFrame with z-scored values.
-            - norm_stats (pd.DataFrame): DataFrame with mean and std of original data.
-            - already_standardized (bool): True if data was already standardized.
-    """
-    if not raw_cols:
-        return (
-            pd.DataFrame(index=df.index),
-            pd.DataFrame(columns=["feature", "mean", "std"]),
-            True,
-        )
-
-    sub_df = df[raw_cols]
-    means = sub_df.mean()
-    stds = sub_df.std()
-
-    # Check if already standardized
-    is_mean_ok = (means.abs() < tol_mean).all()
-    is_std_ok = ((stds - 1).abs() < tol_std).all()
-    already_standardized = is_mean_ok and is_std_ok
-
-    norm_stats = pd.DataFrame({"feature": raw_cols, "mean": means.values, "std": stds.values})
-
-    if already_standardized:
-        z_df_raw = sub_df.copy()
-    else:
-        scaler = StandardScaler()
-        z_values = scaler.fit_transform(sub_df)
-        z_df_raw = pd.DataFrame(z_values, index=sub_df.index, columns=raw_cols)
-
-    return z_df_raw, norm_stats, already_standardized
 
 
 def run_adf(series: pd.Series) -> dict[str, float | int | bool]:
@@ -189,67 +140,40 @@ def preprocess_and_check_stationarity(
     tol_std: float = 1e-1,
     alpha: float = 0.05,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, bool]:
-    """Runs the full preprocessing and stationarity check pipeline.
+    """Runs the stationarity check pipeline on existing z-scored columns.
 
-    1) Extract raw and z-scored columns.
-    2) Z-score raw columns if needed.
-    3) Build the full standardized dataset.
-    4) Run ADF+KPSS on selected standardized columns.
+    1) Identifies _z columns.
+    2) Runs ADF + KPSS on those columns.
+    3) Returns the original DataFrame and the stationarity report.
 
     Args:
         df (pd.DataFrame): Input DataFrame.
-        tol_mean (float): Tolerance for mean check (default 0.1).
-        tol_std (float): Tolerance for std check (default 0.1).
+        tol_mean (float): Unused, kept for compatibility.
+        tol_std (float): Unused, kept for compatibility.
         alpha (float): Significance level for stationarity tests (default 0.05).
 
     Returns:
         tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, bool]:
-            - full_z_df (pd.DataFrame): Combined standardized DataFrame.
-            - norm_stats (pd.DataFrame): Statistics of raw column normalization.
+            - df (pd.DataFrame): Original DataFrame (no standardization applied here).
+            - norm_stats (pd.DataFrame): Empty DataFrame (kept for compatibility).
             - stat_report (pd.DataFrame): Stationarity test results.
-            - already_standardized (bool): True if raw columns were already standardized.
+            - already_standardized (bool): Always True.
     """
-    # 1. Identify raw vs z-scored columns
+    # 1. Identify z-scored columns
     all_cols = df.columns
     z_cols_existing = [c for c in all_cols if str(c).endswith("_z")]
-    raw_cols = [c for c in all_cols if c not in ["date"] and not str(c).endswith("_z")]
 
-    # --- MODIFICATION 1: Verify existing _z columns ---
-    if z_cols_existing:
-        z_stats = df[z_cols_existing].agg(["mean", "std"]).T
-        z_stats["mean_ok"] = z_stats["mean"].abs() < 0.1
-        z_stats["std_ok"] = (z_stats["std"] - 1).abs() < 0.1
+    # 2. Log info
+    logger.info("Selected %d z_ columns for stationarity testing.", len(z_cols_existing))
 
-        logger.info("--- Verification of existing _z columns ---")
-        # Log the dataframe as a string
-        logger.info("\n%s", z_stats)
+    # 3. Run ADF+KPSS on selected columns
+    stat_report = stationarity_report(df, z_cols_existing, alpha=alpha)
 
-        if not z_stats["mean_ok"].all() or not z_stats["std_ok"].all():
-            logger.warning("WARNING: Some existing _z columns do not appear to be standardized!")
-        else:
-            logger.info("All existing _z columns appear to be correctly standardized.")
-        logger.info("-------------------------------------------")
+    # 4. Return compatible args
+    norm_stats = pd.DataFrame(columns=["feature", "mean", "std"])
+    already_standardized = True
 
-    # 2. Z-score raw columns
-    z_df_raw, norm_stats, already_std = zscore_check_and_apply(df, raw_cols, tol_mean=tol_mean, tol_std=tol_std)
-
-    # 3. Build full standardized dataset
-    full_z_df = pd.concat([z_df_raw, df[z_cols_existing]], axis=1)
-
-    # --- MODIFICATION 2: Choose a single set of standardized features for ADF/KPSS ---
-    # Option A (Recommended): Use only the existing `_z` columns
-    stat_cols = z_cols_existing
-
-    # --- MODIFICATION 3: Update the output accordingly ---
-    logger.info(
-        "Selected %d columns for stationarity testing (using existing _z columns).",
-        len(stat_cols),
-    )
-
-    # 4. Run ADF+KPSS on selected standardized columns
-    stat_report = stationarity_report(full_z_df, stat_cols, alpha=alpha)
-
-    return full_z_df, norm_stats, stat_report, already_std
+    return df, norm_stats, stat_report, already_standardized
 
 
 def compute_distribution_stats(df: pd.DataFrame) -> pd.DataFrame:
@@ -424,28 +348,26 @@ if __name__ == "__main__":
         if "date" in df.columns:
             df = df.set_index("date")
 
-        full_z_df, norm_stats, stat_report, already_std = preprocess_and_check_stationarity(df)
+        df, norm_stats, stat_report, already_std = preprocess_and_check_stationarity(df)
 
-        logger.info("Normalization Stats (Raw Columns):")
-        logger.info("\n%s", norm_stats)
+        logger.info("Stationarity checks completed on _z columns.")
         logger.info("Stationarity Report:")
         logger.info("\n%s", stat_report)
-        logger.info("Already Standardized: %s", already_std)
 
         # --- New Feature Analysis Logic ---
         logger.info("--- Starting Distribution Analysis ---")
-        dist_stats = compute_distribution_stats(full_z_df)
+        dist_stats = compute_distribution_stats(df)
         logger.info("\n%s", dist_stats)
 
         logger.info("--- Starting VIF Analysis ---")
-        vif_stats = compute_vif(full_z_df)
+        vif_stats = compute_vif(df)
         logger.info("\n%s", vif_stats)
 
         logger.info("--- Starting PCA Analysis ---")
         # Example: Run PCA on all Z-scored columns
-        z_cols = [c for c in full_z_df.columns if c.endswith("_z")]
+        z_cols = [c for c in df.columns if c.endswith("_z")]
         if z_cols:
-            factor_scores, explained_var, loadings = run_pca(full_z_df, n_components=0.80, columns_to_include=z_cols)
+            factor_scores, explained_var, loadings = run_pca(df, n_components=0.80, columns_to_include=z_cols)
             logger.info("PCA Explained Variance: %s", explained_var)
             logger.info("Factor Scores Shape: %s", factor_scores.shape)
         else:
