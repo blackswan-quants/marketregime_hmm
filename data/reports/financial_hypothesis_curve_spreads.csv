@@ -1,0 +1,7 @@
+feature,metric,value
+curve_10y_2y_z,curve_inversion_fraction,0.31693989071038253
+curve_10y_2y_z,curve_min_value,-2.3659631134357726
+credit_spread_baa_aaa_z,spread_q90,1.7885440054495492
+credit_spread_baa_aaa_z,spread_q95,1.7885440054495492
+credit_spread_baa_aaa_z,spread_q99,1.7885440054495492
+credit_spread_baa_aaa_z,spread_mean,1.553098875978361e-15
