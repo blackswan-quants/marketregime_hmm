@@ -48,10 +48,19 @@ def run_pipeline():
     # If using Real Data, we might want to find optimal K
     # If using Synthetic, we know K=3 but can test anyway
     
-    best_k, df_results = select_best_model(X_scaled, min_k=2, max_k=10)
+    best_k_auto, df_results = select_best_model(X_scaled, min_k=2, max_k=10)
     
     # Plot AIC/BIC
     plot_model_selection(df_results)
+    
+    # Ask User for K
+    print(f"\nAuto-detected optimal k: {best_k_auto}")
+    user_k = input(f"Enter number of regimes to use (default {best_k_auto}): ").strip()
+    
+    if user_k.isdigit():
+        best_k = int(user_k)
+    else:
+        best_k = best_k_auto
     
     # 4. Final Training
     print(f"\nTraining final model with k={best_k} regimes...")
