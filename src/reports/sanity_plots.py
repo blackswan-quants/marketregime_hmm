@@ -8,14 +8,14 @@ This module generates diagnostic plots to validate the regime labels:
 Outputs: PNG files saved to data/reports/figures/
 """
 
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-import seaborn as sns
-from pathlib import Path
-from typing import Optional, Tuple, Dict
 import warnings
+from pathlib import Path
+from typing import Dict, Optional, Tuple
+
+import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
 warnings.filterwarnings("ignore")
 
@@ -49,38 +49,38 @@ REGIME_COLORS = {
 # DATA LOADING & PREPARATION
 # ============================================================================
 
+
 def load_and_merge_data(
-    features_path: Optional[Path] = None,
-    labels_path: Optional[Path] = None
+    features_path: Optional[Path] = None, labels_path: Optional[Path] = None
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
     Load features and labels, merge on date index.
-    
+
     Args:
         features_path: Path to features parquet. Defaults to FEATURES_PARQUET.
         labels_path: Path to labels CSV. Defaults to LABELS_CSV.
-        
+
     Returns:
         Tuple of (features_df, labels_df) merged and validated
     """
     features_path = features_path or FEATURES_PARQUET
     labels_path = labels_path or LABELS_CSV
-    
+
     print(f"Loading features from {features_path}...")
     features_df = pd.read_parquet(features_path)
-    
+
     # Set date column as index if it exists
-    if 'date' in features_df.columns:
-        features_df['date'] = pd.to_datetime(features_df['date'])
-        features_df.set_index('date', inplace=True)
-    
+    if "date" in features_df.columns:
+        features_df["date"] = pd.to_datetime(features_df["date"])
+        features_df.set_index("date", inplace=True)
+
     print(f"Loading labels from {labels_path}...")
     labels_df = pd.read_csv(labels_path, index_col=0, parse_dates=True)
-    
+
     # Merge on date index
     merged_df = features_df.join(labels_df, how="inner")
     print(f"Merged shape: {merged_df.shape}")
-    
+
     return merged_df, features_df
 
 
@@ -88,15 +88,13 @@ def load_and_merge_data(
 # PLOT 1: REGIME TIMELINE
 # ============================================================================
 
+
 def plot_regime_timeline(
-    df: pd.DataFrame,
-    price_col: str = "spx_close",
-    regime_col: str = "risk_regime",
-    output_path: Optional[Path] = None
+    df: pd.DataFrame, price_col: str = "spx_close", regime_col: str = "risk_regime", output_path: Optional[Path] = None
 ) -> None:
     """
     Plot SPX price (log scale) with background colored by risk regime.
-    
+
     Args:
         df: DataFrame with price and regime columns
         price_col: Name of price column
@@ -104,45 +102,45 @@ def plot_regime_timeline(
         output_path: Path to save figure. Defaults to FIGURES_DIR/regime_timeline.png
     """
     output_path = output_path or (FIGURES_DIR / "regime_timeline.png")
-    
+
     # Ensure output directory exists
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    
+
     fig, ax = plt.subplots(figsize=(14, 6))
-    
+
     # Calculate cumulative returns from SPX price
     df_plot = df.copy()
     price_col = FEATURE_CONFIG.get("spx_price", "spx_close")
-    
+
     # Calculate cumulative returns: price_t / price_0
     df_plot["cumulative_returns"] = df_plot[price_col] / df_plot[price_col].iloc[0]
-    
+
     # Get unique regimes and their indices
-    regimes = df_plot[regime_col].unique()
-    
+    regimes = df_plot[regime_col].unique()  # noqa: F841
+
     # Add colored background for each regime by finding continuous blocks
     current_regime = None
     regime_start = None
-    
+
     for i, (idx, row) in enumerate(df_plot.iterrows()):
         regime = row[regime_col]
-        
+
         # Regime changed or last row
         if regime != current_regime:
             # End previous regime block if exists
             if current_regime is not None and regime_start is not None:
                 color = REGIME_COLORS.get(current_regime, "#95a5a6")
                 ax.axvspan(regime_start, idx, alpha=0.2, color=color, zorder=1)
-            
+
             # Start new regime block
             current_regime = regime
             regime_start = idx
-    
+
     # Handle last regime block
     if current_regime is not None and regime_start is not None:
         color = REGIME_COLORS.get(current_regime, "#95a5a6")
         ax.axvspan(regime_start, df_plot.index[-1], alpha=0.2, color=color, zorder=1)
-    
+
     # Plot price line on top (higher zorder)
     ax.plot(
         df_plot.index,
@@ -150,26 +148,26 @@ def plot_regime_timeline(
         color="black",
         linewidth=2.5,
         label="SPX Cumulative Return",
-        zorder=10
+        zorder=10,
     )
-    
+
     # Styling
     ax.set_xlabel("Date", fontsize=12)
     ax.set_ylabel("Cumulative Return", fontsize=12)
     ax.set_title("SPX Price with Market Regime Background", fontsize=14, fontweight="bold")
     ax.grid(True, alpha=0.3)
     ax.legend(loc="best", fontsize=10)
-    
+
     # Format x-axis with actual dates
     ax.xaxis.set_major_locator(mdates.MonthLocator())  # Show every month
-    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
-    plt.xticks(rotation=45, ha='right')
-    
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
+    plt.xticks(rotation=45, ha="right")
+
     plt.tight_layout()
     print(f"Saving regime timeline to {output_path}...")
     plt.savefig(output_path, dpi=300, bbox_inches="tight")
     # Also save as SVG for vector graphics
-    svg_path = output_path.with_suffix('.svg')
+    svg_path = output_path.with_suffix(".svg")
     plt.savefig(svg_path, bbox_inches="tight")
     plt.close()
 
@@ -178,40 +176,39 @@ def plot_regime_timeline(
 # PLOT 2: CONDITIONAL STATISTICS
 # ============================================================================
 
+
 def compute_regime_statistics(
-    df: pd.DataFrame,
-    returns_col: str = "spx_ret_1d",
-    regime_col: str = "risk_regime"
+    df: pd.DataFrame, returns_col: str = "spx_ret_1d", regime_col: str = "risk_regime"
 ) -> Dict[str, pd.DataFrame]:
     """
     Compute mean daily returns and annualized volatility by regime.
-    
+
     Args:
         df: DataFrame with returns and regime columns
         returns_col: Name of returns column
         regime_col: Name of regime label column
-        
+
     Returns:
         Dict with 'returns' and 'volatility' DataFrames
     """
     # Compute statistics by regime
     grouped = df.groupby(regime_col)[returns_col]
-    
+
     # Mean daily return
     mean_returns = grouped.mean() * 100  # Convert to percentage
-    
+
     # Annualized volatility (252 trading days)
     volatility = grouped.std() * np.sqrt(252) * 100  # Convert to percentage
-    
+
     # Count
     counts = grouped.count()
-    
+
     stats = {
         "mean_return": mean_returns,
         "annualized_vol": volatility,
         "count": counts,
     }
-    
+
     return stats
 
 
@@ -219,11 +216,11 @@ def plot_conditional_statistics(
     df: pd.DataFrame,
     returns_col: str = "spx_ret_1d",
     regime_col: str = "risk_regime",
-    output_path: Optional[Path] = None
+    output_path: Optional[Path] = None,
 ) -> None:
     """
     Plot conditional statistics (mean return, volatility) by regime.
-    
+
     Args:
         df: DataFrame with returns and regime columns
         returns_col: Name of returns column
@@ -232,13 +229,13 @@ def plot_conditional_statistics(
     """
     output_path = output_path or (FIGURES_DIR / "regime_stats.png")
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    
+
     # Compute stats
     stats = compute_regime_statistics(df, returns_col, regime_col)
-    
+
     # Create subplots
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
-    
+
     # Plot 1: Mean Daily Return
     mean_ret = stats["mean_return"]
     colors = [REGIME_COLORS.get(regime, "#95a5a6") for regime in mean_ret.index]
@@ -247,39 +244,41 @@ def plot_conditional_statistics(
     ax1.set_title("Mean Daily Return by Regime", fontsize=13, fontweight="bold")
     ax1.grid(True, alpha=0.3, axis="y")
     ax1.axhline(y=0, color="black", linestyle="--", linewidth=1)
-    
+
     # Add value labels on bars
     for i, v in enumerate(mean_ret.values):
         ax1.text(i, v + 0.01 if v > 0 else v - 0.01, f"{v:.3f}%", ha="center", fontsize=10)
-    
+
     # Plot 2: Annualized Volatility
     vol = stats["annualized_vol"]
     ax2.bar(vol.index, vol.values, color=colors, alpha=0.7, edgecolor="black")
     ax2.set_ylabel("Annualized Volatility (%)", fontsize=12)
     ax2.set_title("Annualized Volatility by Regime", fontsize=13, fontweight="bold")
     ax2.grid(True, alpha=0.3, axis="y")
-    
+
     # Add value labels on bars
     for i, v in enumerate(vol.values):
         ax2.text(i, v + 1, f"{v:.1f}%", ha="center", fontsize=10)
-    
+
     plt.tight_layout()
     print(f"Saving conditional statistics to {output_path}...")
     plt.savefig(output_path, dpi=300, bbox_inches="tight")
     # Also save as SVG for vector graphics
-    svg_path = output_path.with_suffix('.svg')
+    svg_path = output_path.with_suffix(".svg")
     plt.savefig(svg_path, bbox_inches="tight")
     plt.close()
-    
+
     # Print table summary
     print("\n" + "=" * 60)
     print("REGIME STATISTICS SUMMARY")
     print("=" * 60)
-    summary_df = pd.DataFrame({
-        "Mean Daily Return (%)": mean_ret,
-        "Annualized Volatility (%)": vol,
-        "Observation Count": stats["count"],
-    })
+    summary_df = pd.DataFrame(
+        {
+            "Mean Daily Return (%)": mean_ret,
+            "Annualized Volatility (%)": vol,
+            "Observation Count": stats["count"],
+        }
+    )
     print(f"\n{summary_df.to_string()}\n")
 
 
@@ -287,15 +286,16 @@ def plot_conditional_statistics(
 # ACCEPTANCE REPORT
 # ============================================================================
 
+
 def generate_acceptance_report(
     df: pd.DataFrame,
     returns_col: str = "spx_ret_1d",
     regime_col: str = "risk_regime",
-    output_path: Optional[Path] = None
+    output_path: Optional[Path] = None,
 ) -> None:
     """
     Generate acceptance report with sanity check results.
-    
+
     Args:
         df: Merged features + labels DataFrame
         returns_col: Name of returns column
@@ -304,9 +304,9 @@ def generate_acceptance_report(
     """
     output_path = output_path or Path("data/processed/f2_acceptance.md")
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    
-    stats = compute_regime_statistics(df, returns_col, regime_col)
-    
+
+    stats = compute_regime_statistics(df, returns_col, regime_col)  # noqa: F841
+
     # Generate markdown report
     report = f"""# Phase F2 Task P6: Labels & Sanity Plots - Acceptance Report
 
@@ -328,16 +328,16 @@ This report summarizes the results of regime label generation and sanity checks.
 
 ### Volatility Buckets
 """
-    
+
     if "vol_bucket" in df.columns:
         vol_dist = df["vol_bucket"].value_counts()
         report += "```\n"
         report += vol_dist.to_string()
         report += "\n```\n\n"
-    
+
     report += f"""### Risk Regimes
 ```
-"""
+"""  # noqa: F541
     risk_dist = df[regime_col].value_counts()
     report += risk_dist.to_string()
     report += f"""
@@ -348,8 +348,8 @@ This report summarizes the results of regime label generation and sanity checks.
 ## 3. Sanity Check Results
 
 ### Risk-On Regime Performance
-"""
-    
+"""  # noqa: F541
+
     risk_on_stats = df[df[regime_col] == "Risk-On"][returns_col]
     if len(risk_on_stats) > 0:
         report += f"""
@@ -360,11 +360,11 @@ This report summarizes the results of regime label generation and sanity checks.
 
 **Expected:** Positive returns, lower volatility [OK]
 """
-    
+
     report += f"""
 ### Risk-Off Regime Performance
-"""
-    
+"""  # noqa: F541
+
     risk_off_stats = df[df[regime_col] == "Risk-Off"][returns_col]
     if len(risk_off_stats) > 0:
         report += f"""
@@ -375,7 +375,7 @@ This report summarizes the results of regime label generation and sanity checks.
 
 **Expected:** Negative/low returns, higher volatility [OK]
 """
-    
+
     report += f"""
 ---
 
@@ -398,8 +398,8 @@ This report summarizes the results of regime label generation and sanity checks.
 
 **Status:** READY FOR HANDOFF TO P7
 
-"""
-    
+"""  # noqa: F541
+
     print(f"Saving acceptance report to {output_path}...")
     with open(output_path, "w") as f:
         f.write(report)
@@ -410,14 +410,13 @@ This report summarizes the results of regime label generation and sanity checks.
 # MAIN PIPELINE
 # ============================================================================
 
+
 def generate_sanity_plots(
-    features_path: Optional[Path] = None,
-    labels_path: Optional[Path] = None,
-    figures_dir: Optional[Path] = None
+    features_path: Optional[Path] = None, labels_path: Optional[Path] = None, figures_dir: Optional[Path] = None
 ) -> None:
     """
     Main pipeline: Load data, generate all diagnostic plots.
-    
+
     Args:
         features_path: Path to features parquet
         labels_path: Path to labels CSV
@@ -426,34 +425,36 @@ def generate_sanity_plots(
     features_path = features_path or FEATURES_PARQUET
     labels_path = labels_path or LABELS_CSV
     figures_dir = figures_dir or FIGURES_DIR
-    
+
     # Ensure figures directory exists
     figures_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Load and merge data
     merged_df, features_df = load_and_merge_data(features_path, labels_path)
-    
+
     price_col = FEATURE_CONFIG.get("spx_price")
     returns_col = FEATURE_CONFIG.get("returns_1d")
-    
+
     # Validate columns
     if price_col not in merged_df.columns:
         print(f"Warning: Price column '{price_col}' not found. Available: {merged_df.columns.tolist()}")
         raise ValueError(f"Column '{price_col}' not found in dataset.")
-    
+
     # Generate plots
     print("\n" + "=" * 60)
     print("GENERATING SANITY PLOTS")
     print("=" * 60)
-    
+
     plot_regime_timeline(merged_df, price_col=price_col, output_path=figures_dir / "regime_timeline.png")
-    
+
     if returns_col and returns_col in merged_df.columns:
         plot_conditional_statistics(merged_df, returns_col=returns_col, output_path=figures_dir / "regime_stats.png")
-        generate_acceptance_report(merged_df, returns_col=returns_col, output_path=Path("data/processed/f2_acceptance.md"))
+        generate_acceptance_report(
+            merged_df, returns_col=returns_col, output_path=Path("data/processed/f2_acceptance.md")
+        )
     else:
         print(f"Warning: Returns column '{returns_col}' not found. Skipping stats plots.")
-    
+
     print("\n✅ All plots generated successfully!")
 
 

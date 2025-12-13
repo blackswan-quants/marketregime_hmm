@@ -149,11 +149,19 @@ class Plotter:
         # Plot each feature
         for idx, col in enumerate(feature_cols):
             ax = axes[idx]
-            df[col].hist(bins=bins, ax=ax, edgecolor="black", alpha=0.7)
+            # Histogram
+            df[col].hist(bins=bins, ax=ax, density=True, edgecolor="black", alpha=0.3, label="Hist")
+            # KDE
+            try:
+                df[col].plot.kde(ax=ax, color="red", linewidth=1.5, label="KDE")
+            except Exception:
+                pass  # Fallback if KDE fails (e.g. constant value)
+
             ax.set_title(col, fontsize=10)
             ax.set_xlabel("")
-            ax.set_ylabel("Frequency")
+            ax.set_ylabel("Density")
             ax.grid(alpha=0.3)
+            ax.legend(fontsize=8)
 
         # Hide unused subplots
         for idx in range(n_features, len(axes)):
@@ -169,3 +177,55 @@ class Plotter:
         plt.close()
 
         logging.getLogger(__name__).info(f"Feature distributions saved to {output_path}")
+
+    def plot_pca_components(
+        self,
+        pca_explained_variance: np.ndarray,
+        factor_scores: pd.DataFrame,
+        output_path_scree: str,
+    ) -> None:
+        """
+        Plot PCA Scree plot.
+
+        Args:
+            pca_explained_variance: Array of explained variance ratios.
+            factor_scores: DataFrame of PCA factor scores.
+            output_path_scree: Path to save scree plot.
+        """
+        # 1. Scree Plot
+        plt.figure(figsize=(10, 6))
+
+        # Cumulative variance
+        cum_var = np.cumsum(pca_explained_variance)
+        n_components = len(pca_explained_variance)
+
+        plt.plot(
+            range(1, n_components + 1), cum_var, "bo-", linewidth=2, markersize=6, label="Cumulative Explained Variance"
+        )
+        plt.bar(
+            range(1, n_components + 1),
+            pca_explained_variance,
+            alpha=0.5,
+            align="center",
+            label="Individual Variance (PC1, PC2, ...)",
+        )
+
+        plt.axhline(y=0.8, color="g", linestyle="--", alpha=0.5, label="80% Threshold")
+
+        plt.xlabel("Principal Component")
+        plt.xticks(
+            range(1, n_components + 1),
+            [f"PC{i}" for i in range(1, n_components + 1)],
+            rotation=45 if n_components > 10 else 0,
+        )
+        plt.ylabel("Explained Variance Ratio")
+        plt.title("PCA Scree Plot")
+        plt.legend(loc="best")
+        plt.grid(True, alpha=0.3)
+        plt.tight_layout()
+
+        Path(output_path_scree).parent.mkdir(parents=True, exist_ok=True)
+        plt.savefig(output_path_scree, dpi=150)
+        plt.close()
+
+        logging.getLogger(__name__).info(f"PCA Scree plot saved to {output_path_scree}")
