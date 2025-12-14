@@ -8,6 +8,18 @@ import seaborn as sns
 from .config import REGIME_COLORS, REGIME_NAMES
 
 
+"""
+Visualization Module for HMM Market Regime Detection.
+
+This module provides comprehensive plotting utilities to analyze and interpret the results of the HMM.
+It includes functions for:
+- 3D Feature Space Clustering: Visualizing how regimes cluster in PCA space.
+- Regime Characterization: Heatmaps and violin plots showing feature statistics per regime.
+- Market Timeline: Overlaying predicted regimes on price/index charts.
+- Model Selection: Plotting AIC/BIC curves.
+"""
+
+
 def plot_regime_bg(ax, Z, data, title, acc=None, regime_names=None, regime_colors=None, ylabel="Value"):
     """Plot data series with colored regime backgrounds."""
     if regime_names is None:
@@ -49,7 +61,26 @@ def create_dashboard(
     X_raw, Z_pred, feature_names, logprob, data_type="Real", Z_true=None, aux_data=None, posterior_probs=None
 ):
     """
-    Create comprehensive dashboard with Feature Interpretability and Regime Timeline.
+    Generates a comprehensive analytical dashboard for the HMM model results.
+
+    The dashboard consists of 4 main panels:
+    1. Feature Space (3D/2D Scatter): Visualizes the separation of regimes in the Principal Component space.
+    2. Regime Characteristics (Heatmap): Shows the mean z-score of each feature for every regime (interpretability).
+    3. Feature Distributions (Violin Plot): detailed view of feature density per regime to check for outliers/overlaps.
+    4. Market Timeline: The main time-series chart with regime overlays.
+
+    Args:
+        X_raw (np.ndarray): The raw (or scaled) feature matrix used for plotting.
+        Z_pred (np.ndarray): Predicted hidden states sequence.
+        feature_names (list): List of feature names corresponding to columns of X_raw.
+        logprob (float): Final log-likelihood of the fitted model.
+        data_type (str): "Real", "Gaussian", or "Broken" (for title context).
+        Z_true (np.ndarray, optional): Ground truth states (for synthetic data validation).
+        aux_data (dict, optional): Auxiliary data like timestamps or reference prices.
+        posterior_probs (np.ndarray, optional): Posterior probabilities (not currently plotted but available).
+
+    Saves:
+        A 'latest_dashboard.png' image in the current directory.
     """
     # X_raw columns correspond to feature_names
 
