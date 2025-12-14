@@ -16,7 +16,31 @@ from src.model.hmm_package.model import select_best_model, train_hmm
 from src.model.hmm_package.vis import create_dashboard, plot_model_selection
 
 
+"""
+HMM Market Regime Detection Pipeline.
+
+This module serves as the main entry point for the analysis. It orchestrates the entire workflow:
+1. Data Loading: Fetches real market data or generates synthetic datasets.
+2. Preprocessing: Standardizes the data (z-score normalization).
+3. Model Selection: Automatically determines the optimal number of regimes (k) using BIC.
+4. Training: Fits the Gaussian Hidden Markov Model (HMM) on the data.
+5. Inference: Predicts current regimes and calculates posterior probabilities.
+6. Visualization: Generates a comprehensive dashboard and saves the model.
+"""
+
+
 def run_pipeline():
+    """
+    Executes the full HMM market regime detection pipeline.
+
+    Steps:
+    - Loads configuration from `config.py`.
+    - Handles data ingestion (Real vs Synthetic).
+    - interactive or automatic model selection (AIC/BIC).
+    - Trains the final HMM model.
+    - Saves the trained model to disk.
+    - Generates and saves visualization dashboards.
+    """
     print("=" * 60)
     print("HMM MARKET REGIME DETECTION PIPELINE")
     print("=" * 60)

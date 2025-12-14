@@ -8,7 +8,29 @@ from scipy.stats import skewnorm, t
 
 def load_real_data(filepath):
     """
-    Load real market data from parquet file.
+    Load real market data from a parquet file and prepare it for HMM analysis.
+
+    Supports dynamic feature selection:
+    1. PCA Features: If columns contain 'PC' (e.g., market_PC1), they are prioritized.
+    2. Fallback Features: If no PCA columns, falls back to raw indicators:
+       - Log-Returns (from spx_close)
+       - Momentum (R1)
+       - Log-Volatility (V1)
+       - Drawdown (D1)
+       - Yield Curve (M1)
+
+    Args:
+        filepath (str): Path to the .parquet data file.
+
+    Returns:
+        tuple: (X, Z_true, feature_names, aux_data)
+            - X (np.ndarray): Feature matrix (n_samples, n_features).
+            - Z_true (np.ndarray): Dummy zeros array (since real data has no ground truth).
+            - feature_names (list): List of selected feature names.
+            - aux_data (dict): Dictionary with auxiliary data like 'date' and 'price'.
+
+    Raises:
+        FileNotFoundError: If the filepath does not exist.
     """
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"File not found: {filepath}")
@@ -68,7 +90,28 @@ def load_real_data(filepath):
 
 def generate_multifeature_data(n_samples=2000, noise_level=0.0):
     """
-    Generate 4D observations with OVERLAPPING distributions (realistic/hard mode).
+    Generate synthetic 4D multivariate market data with realistic, OVERLAPPING distributions.
+
+    Features generated:
+    1. Log-Returns
+    2. Log-Volatility
+    3. Drawdown
+    4. Yield Curve
+
+    The generation uses a Gaussian HMM with 'sticky' transitions to simulate persistent market regimes.
+    The means and covariances are calibrated to create "Hard Mode" data where regimes are not perfectly separable,
+    mimicking real-world ambiguity (e.g., Bear market volatility overlapping with Bull market corrections).
+
+    Args:
+        n_samples (int): Number of time steps to generate.
+        noise_level (float): Factor of additional Gaussian noise added to observations (0.0 to 1.0).
+
+    Returns:
+        tuple: (X, Z_true, feature_names, aux_data)
+            - X (np.ndarray): Observation matrix.
+            - Z_true (np.ndarray): True hidden states.
+            - feature_names (list): Names of features.
+            - aux_data (dict): Contains 'date' and reconstructed 'price'.
     """
     model = hmm.GaussianHMM(n_components=3, covariance_type="full")
 
