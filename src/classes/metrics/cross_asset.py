@@ -20,11 +20,14 @@ Features:
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Paths (robust to current working directory)
@@ -341,5 +344,10 @@ def save_cross_asset_features(
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
     save_cross_asset_features()
-    print(f"Saved cross-asset features to: {DEFAULT_OUTPUT_PATH}")
+    logger.info("Saved cross-asset features to: %s", DEFAULT_OUTPUT_PATH)

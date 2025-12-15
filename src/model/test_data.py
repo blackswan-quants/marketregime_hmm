@@ -1,7 +1,11 @@
+import logging
+
 import matplotlib.pyplot as plt
 import numpy as np
 from hmmlearn import hmm
 from matplotlib.patches import Patch
+
+logger = logging.getLogger(__name__)
 
 np.random.seed(0)
 plt.style.use("seaborn-v0_8-darkgrid")
@@ -119,9 +123,15 @@ def map_states_2d(model):
     mapping[bull_id] = {"label": "Bull", "color": "#2ecc71"}  # Green
     mapping[side_id] = {"label": "Sideways", "color": "#95a5a6"}  # Gray
 
-    print("--- Identified Semantic Mapping (Automatic) ---")
+    logger.info("--- Identified Semantic Mapping (Automatic) ---")
     for i in range(3):
-        print(f"State {i}: {mapping[i]['label']} | Mean Ret: {means_ret[i]:.5f} | Mean LogVol: {means_vol[i]:.2f}")
+        logger.info(
+            "State %s: %s | Mean Ret: %.5f | Mean LogVol: %.2f",
+            i,
+            mapping[i]["label"],
+            means_ret[i],
+            means_vol[i],
+        )
 
     return mapping
 
@@ -204,6 +214,11 @@ def plot_results_2d(X, Z_true, Z_pred, mapping):
 
 # --- Execution ---
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
     # 1. Generate (Returns, Vol)
     X_2d, Z_true, _ = generate_2d_synthetic_data(2000)
 
@@ -216,5 +231,5 @@ if __name__ == "__main__":
 
         # 4. Plot
         plot_results_2d(X_2d, Z_true, Z_pred, mapping)
-    except Exception as e:
-        print(f"Error in mapping (likely convergence failure): {e}")
+    except Exception:
+        logger.exception("Error in mapping (likely convergence failure)")

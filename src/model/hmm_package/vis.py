@@ -1,11 +1,15 @@
+import logging
 import os
 
+import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from .config import REGIME_COLORS, REGIME_NAMES
+from .config import REGIME_NAMES
+
+logger = logging.getLogger(__name__)
 
 """
 Visualization Module for HMM Market Regime Detection.
@@ -19,21 +23,40 @@ It includes functions for:
 """
 
 
-def plot_regime_bg(ax, Z, data, title, acc=None, regime_names=None, regime_colors=None, ylabel="Value"):
+def plot_regime_bg(
+    ax,
+    Z,
+    data,
+    title,
+    acc=None,
+    state_labels=None,
+    label_colors=None,
+    ylabel="Value",
+):
     """Plot data series with colored regime backgrounds."""
-    if regime_names is None:
-        regime_names = REGIME_NAMES
-    if regime_colors is None:
-        regime_colors = REGIME_COLORS
+    if state_labels is None:
+        state_labels = {}
+    if label_colors is None:
+        label_colors = {}
 
     ax.plot(data, "k", lw=1)
+
+    # Generate colormap for regimes dynamically if needed
+    unique_states = np.unique(Z)
+    cmap = cm.get_cmap("tab10" if len(unique_states) <= 10 else "tab20")
+
+    # Build complete color mapping
+    for idx, state in enumerate(unique_states):
+        regime_name = state_labels.get(state, f"Regime_{state}")
+        if regime_name not in label_colors:
+            label_colors[regime_name] = cmap(idx % (10 if len(unique_states) <= 10 else 20))
 
     # Find regime change points
     changes = np.concatenate(([0], np.where(Z[:-1] != Z[1:])[0] + 1, [len(Z)]))
     for i in range(len(changes) - 1):
         s, e = changes[i], changes[i + 1]
-        regime_name = regime_names.get(Z[s], f"State {Z[s]}")
-        color = regime_colors.get(regime_name, "#95a5a6")
+        regime_name = state_labels.get(Z[s], f"Regime_{Z[s]}")
+        color = label_colors.get(regime_name, "#95a5a6")
         ax.axvspan(s, e, color=color, alpha=0.3, lw=0)
 
     title_text = title
@@ -57,7 +80,16 @@ FEATURE_DESCRIPTIONS = {
 
 
 def create_dashboard(
-    X_raw, Z_pred, feature_names, logprob, data_type="Real", Z_true=None, aux_data=None, posterior_probs=None
+    X_raw,
+    Z_pred,
+    feature_names,
+    logprob,
+    data_type="Real",
+    Z_true=None,
+    aux_data=None,
+    posterior_probs=None,
+    state_labels=None,
+    label_colors=None,
 ):
     """
     Generates a comprehensive analytical dashboard for the HMM model results.
@@ -88,10 +120,25 @@ def create_dashboard(
     gs = fig.add_gridspec(2, 3, height_ratios=[1, 1])
 
     title_extra = f" | LogL: {logprob:.0f}" if logprob else ""
-    plt.suptitle(f"HMM Regime Detection (Real Data){title_extra}", fontsize=18, fontweight="bold", y=0.98)
+    plt.suptitle(f"HMM Regime Detection ({data_type} Data){title_extra}", fontsize=18, fontweight="bold", y=0.98)
 
     # --- PLOT 1: Feature Space Clusters (3D Principal Components) ---
-    colors_pred = [REGIME_COLORS.get(REGIME_NAMES.get(z, f"State {z}"), "#95a5a6") for z in Z_pred]
+    if state_labels is None:
+        state_labels = REGIME_NAMES
+    if label_colors is None:
+        label_colors = {}
+
+    # Generate colors dynamically for all regimes
+    unique_states = np.unique(Z_pred)
+    cmap = cm.get_cmap("tab10" if len(unique_states) <= 10 else "tab20")
+
+    # Build complete color mapping
+    for idx, state in enumerate(unique_states):
+        regime_name = state_labels.get(state, f"Regime_{state}")
+        if regime_name not in label_colors:
+            label_colors[regime_name] = cmap(idx % (10 if len(unique_states) <= 10 else 20))
+
+    colors_pred = [label_colors.get(state_labels.get(z, f"Regime_{z}"), "#95a5a6") for z in Z_pred]
 
     if X_raw.shape[1] >= 3:
         ax_clust = fig.add_subplot(gs[0, 0], projection="3d")
@@ -110,7 +157,7 @@ def create_dashboard(
 
     # --- PLOT 2: Feature Importance / Characteristics (Heatmap) ---
     df_feat = pd.DataFrame(X_raw, columns=feature_names)
-    df_feat["Regime"] = [REGIME_NAMES.get(z, f"State {z}") for z in Z_pred]
+    df_feat["Regime"] = [state_labels.get(z, f"Regime_{z}") for z in Z_pred]
 
     # Standardize for Heatmap readability
     df_std = df_feat.iloc[:, :-1].std()
@@ -137,8 +184,8 @@ def create_dashboard(
         )
         ax_heat.set_title("2. Regime Characteristics (Feature Means)", fontweight="bold")
         ax_heat.set_yticklabels(ax_heat.get_yticklabels(), rotation=0)
-    except Exception as e:
-        print(f"Could not plot heatmap: {e}")
+    except Exception:
+        logger.exception("Could not plot heatmap")
         ax_heat.text(0.5, 0.5, "Heatmap Error", ha="center")
 
     # --- PLOT 3: Feature Distributions (Violin Plot of Z-Scores) ---
@@ -146,8 +193,7 @@ def create_dashboard(
 
     # Ensure palette covers all regimes
     unique_regimes = df_feat["Regime"].unique()
-    plot_palette = REGIME_COLORS.copy()
-    import matplotlib.cm as cm
+    plot_palette = dict(label_colors)
 
     for r in unique_regimes:
         if r not in plot_palette:
@@ -167,7 +213,7 @@ def create_dashboard(
         ax_viol.legend(loc="upper right", bbox_to_anchor=(1.0, 1.1), ncol=1, fontsize="small")
 
     except Exception as e:
-        print(f"Could not plot violin distribution: {e}")
+        logger.exception("Could not plot violin distribution")
         ax_viol.text(0.5, 0.5, f"Plot Error: {e}", ha="center")
 
     # --- PLOT 4: Regime Timeline (Overlay) ---
@@ -175,13 +221,6 @@ def create_dashboard(
     # Reverting to Time Series Overlay which shows the actual market dynamic + regime colors.
 
     ax_timeline = fig.add_subplot(gs[1, :])
-
-    # Determine X-Axis (Dates or Index)
-    # Determine X-Axis (Dates or Index)
-    if aux_data and "date" in aux_data:
-        pass
-    else:
-        pass
 
     # Use Price if available, else PC1 (Market Risk)
     if aux_data and "price" in aux_data:
@@ -191,7 +230,15 @@ def create_dashboard(
         ts_data = X_raw[:, 0]
         ts_name = f"{feature_names[0]} (Risk Proxy)"
 
-    plot_regime_bg(ax_timeline, Z_pred, ts_data, f"4. Market Regime Timeline ({ts_name})", ylabel=ts_name)
+    plot_regime_bg(
+        ax_timeline,
+        Z_pred,
+        ts_data,
+        f"4. Market Regime Timeline ({ts_name})",
+        ylabel=ts_name,
+        state_labels=state_labels,
+        label_colors=label_colors,
+    )
 
     # If we have dates, try to set them (simple approximation if plot_regime_bg plots against index)
     # plot_regime_bg plots ts_data against index. We can set labels manually if needed,
@@ -201,7 +248,7 @@ def create_dashboard(
     save_path = os.path.join(os.path.dirname(__file__), "latest_dashboard.png")
     plt.tight_layout()
     plt.savefig(save_path, dpi=100)
-    print(f"Dashboard saved to: {save_path}")
+    logger.info("Dashboard saved to: %s", save_path)
 
     # plt.show()
 
@@ -211,7 +258,7 @@ def plot_model_selection(df_results):
     Plot AIC and BIC values
     """
     if df_results.empty or "k" not in df_results.columns:
-        print("No model selection results to plot.")
+        logger.info("No model selection results to plot")
         return
 
     fig, ax1 = plt.subplots(figsize=(10, 6))
@@ -235,5 +282,5 @@ def plot_model_selection(df_results):
 
     save_path = os.path.join(os.path.dirname(__file__), "model_selection.png")
     plt.savefig(save_path, dpi=100)
-    print(f"Model selection plot saved to: {save_path}")
+    logger.info("Model selection plot saved to: %s", save_path)
     # plt.show()

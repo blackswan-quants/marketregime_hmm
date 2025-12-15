@@ -6,6 +6,7 @@ REAL_DATA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "hmm_m
 NOISE_LEVEL = 0.15
 N_SAMPLES = 2000
 N_REGIMES = 3  # Default k, will be overridden by selection
+RANDOM_STATE = 42
 
 
 MODEL_SAVE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "hmm_model.pkl")

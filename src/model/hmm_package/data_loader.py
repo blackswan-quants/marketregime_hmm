@@ -1,9 +1,12 @@
+import logging
 import os
 
 import numpy as np
 import pandas as pd
 from hmmlearn import hmm
 from scipy.stats import skewnorm, t
+
+logger = logging.getLogger(__name__)
 
 
 def load_real_data(filepath):
@@ -36,16 +39,16 @@ def load_real_data(filepath):
         raise FileNotFoundError(f"File not found: {filepath}")
 
     df = pd.read_parquet(filepath)
-    print(f"Loaded data columns: {df.columns.tolist()}")
+    logger.info("Loaded data columns: %s", df.columns.tolist())
 
     features = []
     feature_names = []
 
     # Check for PCA features first
-    pc_cols = [c for c in df.columns if "PC" in c]
+    pc_cols = sorted([c for c in df.columns if "PC" in c])
 
     if len(pc_cols) > 0:
-        print(f"Using PCA features: {pc_cols}")
+        logger.info("Using PCA features: %s", pc_cols)
         df = df.dropna(subset=pc_cols)
         for col in pc_cols:
             features.append(df[col].values)
@@ -72,6 +75,13 @@ def load_real_data(filepath):
         if "M1" in df.columns:
             features.append(df["M1"].values)
             feature_names.append("Yield Curve (M1)")
+
+    if not features:
+        raise ValueError(
+            "No usable features found for HMM input. "
+            "Expected PCA columns containing 'PC' or one of: spx_close, R1, V1, D1, M1. "
+            f"Available columns: {df.columns.tolist()}"
+        )
 
     X = np.column_stack(features)
 
