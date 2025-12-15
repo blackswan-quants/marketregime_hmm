@@ -12,10 +12,13 @@ NOTE: Column names must match the output of P2 (feature engineering).
 Configuration section below allows for easy remapping if names change.
 """
 
+import logging
 from pathlib import Path
 from typing import Optional
 
 import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 # ============================================================================
 # CONFIGURATION: Column Name Mapping
@@ -143,7 +146,7 @@ def make_labels(
     feature_config = feature_config or FEATURE_COLUMNS
 
     # Load data
-    print(f"Loading features from {input_path}...")
+    logger.info("Loading features from %s", input_path)
     df = pd.read_parquet(input_path)
 
     # Set date column as index if it exists
@@ -151,23 +154,23 @@ def make_labels(
         df["date"] = pd.to_datetime(df["date"])
         df.set_index("date", inplace=True)
 
-    print(f"Loaded {df.shape[0]} rows, {df.shape[1]} columns")
-    print(f"Date range: {df.index.min()} to {df.index.max()}")
+    logger.info("Loaded %s rows, %s columns", df.shape[0], df.shape[1])
+    logger.info("Date range: %s to %s", df.index.min(), df.index.max())
 
     # TODO: Update FEATURE_COLUMNS dict when P2 completes
     # Check if expected columns exist; if not, attempt auto-detection
     vol_col = feature_config.get("volatility")
     if vol_col not in df.columns:
-        print(f"Warning: Column '{vol_col}' not found. Available: {df.columns.tolist()}")
+        logger.warning("Column '%s' not found. Available: %s", vol_col, df.columns.tolist())
         # Placeholder: auto-detect or ask user
         raise ValueError(f"Column '{vol_col}' not found in dataset.")
 
     # Compute volatility buckets
-    print("Computing volatility buckets...")
+    logger.info("Computing volatility buckets")
     vol_bucket = compute_volatility_buckets(df, vol_col)
 
     # Compute risk regimes
-    print("Computing risk regimes...")
+    logger.info("Computing risk regimes")
     risk_regime = compute_risk_regimes(df, feature_config)
 
     # Create output DataFrame
@@ -180,17 +183,20 @@ def make_labels(
     )
 
     # Summary statistics
-    print("\n" + "=" * 60)
-    print("LABEL SUMMARY STATISTICS")
-    print("=" * 60)
-    print(f"\nVolatility Bucket Distribution:\n{labels_df['vol_bucket'].value_counts()}")
-    print(f"\nRisk Regime Distribution:\n{labels_df['risk_regime'].value_counts()}")
-    print(f"\nCross-tabulation:\n{pd.crosstab(labels_df['vol_bucket'], labels_df['risk_regime'])}")
+    logger.info("%s", "=" * 60)
+    logger.info("LABEL SUMMARY STATISTICS")
+    logger.info("%s", "=" * 60)
+    logger.info("Volatility Bucket Distribution:\n%s", labels_df["vol_bucket"].value_counts().to_string())
+    logger.info("Risk Regime Distribution:\n%s", labels_df["risk_regime"].value_counts().to_string())
+    logger.info(
+        "Cross-tabulation:\n%s",
+        pd.crosstab(labels_df["vol_bucket"], labels_df["risk_regime"]).to_string(),
+    )
 
     # Save to CSV
-    print(f"\nSaving labels to {output_path}...")
+    logger.info("Saving labels to %s", output_path)
     labels_df.to_csv(output_path)
-    print("Done!")
+    logger.info("Done")
 
     return labels_df
 

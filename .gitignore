@@ -177,3 +177,5 @@ pyrightconfig.json
 .DS_Store
 .vscode/
 src/labels/inspect_d1.ipynb
+PR_DESCRIPTION.md
+data/raw/
