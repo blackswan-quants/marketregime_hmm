@@ -15,7 +15,6 @@ from src.model.hmm_package.data_loader import generate_broken_data, generate_mul
 from src.model.hmm_package.model import select_best_model, train_hmm
 from src.model.hmm_package.vis import create_dashboard, plot_model_selection
 
-
 """
 HMM Market Regime Detection Pipeline.
 

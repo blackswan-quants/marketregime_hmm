@@ -30,11 +30,9 @@ def generate_2d_synthetic_data(n_samples=2000):
 
     model.startprob_ = np.array([0.5, 0.2, 0.3])
     # Transition matrix columns: Bull, Bear, Sideways
-    model.transmat_ = np.array([
-        [0.96, 0.01, 0.03],  # From Bull
-        [0.02, 0.90, 0.08],  # From Bear
-        [0.02, 0.05, 0.93]   # From Sideways
-    ])
+    model.transmat_ = np.array(
+        [[0.96, 0.01, 0.03], [0.02, 0.90, 0.08], [0.02, 0.05, 0.93]]  # From Bull  # From Bear  # From Sideways
+    )
 
     # REGIME DEFINITION (Feature 0: Log-Returns, Feature 1: Log-Volatility)
     # Note: Log-Vol is used because volatility is strictly positive and log-normal.

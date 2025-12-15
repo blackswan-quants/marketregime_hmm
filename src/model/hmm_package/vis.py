@@ -7,7 +7,6 @@ import seaborn as sns
 
 from .config import REGIME_COLORS, REGIME_NAMES
 
-
 """
 Visualization Module for HMM Market Regime Detection.
 
