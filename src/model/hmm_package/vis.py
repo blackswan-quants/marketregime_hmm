@@ -284,3 +284,73 @@ def plot_model_selection(df_results):
     plt.savefig(save_path, dpi=100)
     logger.info("Model selection plot saved to: %s", save_path)
     # plt.show()
+
+
+def plot_transition_drift(df_rolling: pd.DataFrame, n_components: int, full_matrix: bool = False):
+    """
+    Plot drift of transition probabilities and expected durations from rolling analysis.
+
+    Args:
+        df_rolling: Output of run_rolling_analysis (indexed by WindowEndDate)
+        n_components: number of regimes (k)
+        full_matrix: if True, plot all A_ij; if False, plot only diagonal A_ii
+
+    Saves:
+        transition_drift.png
+    """
+    if df_rolling is None or df_rolling.empty:
+        logger.warning("Rolling analysis results are empty. Cannot plot transition drift.")
+        return
+
+    fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(12, 10), sharex=True)
+    cmap = cm.get_cmap("tab10")
+
+    #  Plot 1: Transition drift
+    ax1 = axes[0]
+    ax1.set_title("Transition Probability Drift", fontweight="bold")
+    ax1.set_ylabel("Probability")
+
+    if full_matrix:
+        # Plot all A_ij
+        for i in range(n_components):
+            for j in range(n_components):
+                col = f"A_{i+1}{j+1}"
+                if col not in df_rolling.columns:
+                    continue
+                linestyle = "-" if i == j else ":"
+                color = cmap((i * n_components + j) % cmap.N)
+                df_rolling[col].plot(ax=ax1, label=f"A({i+1}->{j+1})", lw=1.2, linestyle=linestyle, color=color)
+        ax1.legend(loc="upper center", bbox_to_anchor=(0.5, 1.18), ncol=6, fontsize="x-small")
+    else:
+        # Plot only diagonal A_ii
+        for i in range(n_components):
+            col = f"A_{i+1}{i+1}"
+            if col not in df_rolling.columns:
+                continue
+            color = cmap(i % cmap.N)
+            df_rolling[col].plot(ax=ax1, label=f"A({i+1}->{i+1})", lw=2, color=color)
+        ax1.legend(loc="upper right", fontsize="small")
+
+    ax1.grid(True, alpha=0.4)
+
+    #  Plot 2: Duration drift
+    ax2 = axes[1]
+    ax2.set_title("Expected Regime Duration Drift", fontweight="bold")
+    ax2.set_ylabel("Expected Duration (days)")
+    ax2.set_xlabel("Window End Date")
+
+    for i in range(n_components):
+        col = f"Dur_{i+1}"
+        if col not in df_rolling.columns:
+            continue
+        color = cmap(i % cmap.N)
+        df_rolling[col].plot(ax=ax2, label=f"Dur(Regime {i+1})", lw=2, color=color)
+
+    ax2.legend(loc="upper right", fontsize="small", ncol=2)
+    ax2.grid(True, alpha=0.4)
+
+    save_path = os.path.join(os.path.dirname(__file__), "transition_drift.png")
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=120)
+    plt.close()
+    logger.info("Transition drift plot saved to: %s", save_path)

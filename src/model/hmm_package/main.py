@@ -14,6 +14,8 @@ import logging
 import os
 import sys
 
+import pandas as pd
+
 # Add project root to path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(current_dir, "../../../"))
@@ -33,7 +35,8 @@ from src.model.hmm_package.config import (
 )
 from src.model.hmm_package.data_loader import generate_broken_data, generate_multifeature_data, load_real_data
 from src.model.hmm_package.model import HMMConfig, infer_state_labels, select_best_model, train_hmm
-from src.model.hmm_package.vis import create_dashboard, plot_model_selection
+from src.model.hmm_package.rolling_analysis import run_rolling_analysis
+from src.model.hmm_package.vis import create_dashboard, plot_model_selection, plot_transition_drift
 
 logger = logging.getLogger(__name__)
 
@@ -149,6 +152,49 @@ def run_pipeline():
         posterior_probs=posterior_probs,
         state_labels=state_labels,
     )
+
+    # 6. Rolling Analysis
+    date_data = aux_data.get("date") if isinstance(aux_data, dict) else None
+    timestamps = None
+
+    if DATA_TYPE == "Real" and date_data is not None:
+        try:
+            timestamps = pd.DatetimeIndex(pd.to_datetime(date_data))
+
+            # Aligning lenghts
+            n = min(len(timestamps), len(X_scaled))
+            if n == 0:
+                logger.warning("Rolling analysis skipped: empty timestamps or X_scaled.")
+                timestamps = None
+            else:
+                if len(timestamps) != len(X_scaled):
+                    logger.warning(
+                        "Length mismatch: timestamps=%d vs X_scaled=%d. Slicing both to %d.",
+                        len(timestamps),
+                        len(X_scaled),
+                        n,
+                    )
+                    timestamps = timestamps[:n]
+                    X_scaled = X_scaled[:n]
+
+                logger.info("Running rolling window analysis (n=%d).", n)
+
+        except Exception as e:
+            logger.error("Failed to convert aux_data['date'] to DatetimeIndex: %s", e)
+            timestamps = None
+
+    if timestamps is not None:
+        df_rolling = run_rolling_analysis(
+            X_scaled,
+            timestamps,
+            n_components=best_k,
+            hmm_config=hmm_config,
+            window_size=100,
+            step_size=21,
+        )
+        plot_transition_drift(df_rolling, n_components=best_k, full_matrix=False)
+    else:
+        logger.warning("Rolling analysis skipped (DATA_TYPE not Real or date conversion failed).")
 
 
 if __name__ == "__main__":
