@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 from statsmodels.tsa.stattools import adfuller
 
-
 LOGGER = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO,
@@ -293,9 +292,7 @@ def check_curve_and_spreads(df: pd.DataFrame) -> pd.DataFrame:
         )
 
     if not rows:
-        LOGGER.warning(
-            "No curve/spread columns found; skipping curve/spread checks."
-        )
+        LOGGER.warning("No curve/spread columns found; skipping curve/spread checks.")
 
     return pd.DataFrame(rows)
 
@@ -311,15 +308,9 @@ def check_cross_asset_correlations(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         pd.DataFrame: Summary of correlation/beta statistics.
     """
-    corr_like = [
-        c
-        for c in df.columns
-        if ("corr" in c.lower()) or ("beta" in c.lower())
-    ]
+    corr_like = [c for c in df.columns if ("corr" in c.lower()) or ("beta" in c.lower())]
     if not corr_like:
-        LOGGER.warning(
-            "No correlation/beta-like columns found; skipping cross-asset checks."
-        )
+        LOGGER.warning("No correlation/beta-like columns found; skipping cross-asset checks.")
         return pd.DataFrame()
 
     rows = []
@@ -380,27 +371,17 @@ def verify_financial_hypotheses() -> None:
 
     # Save individual CSVs
     if not returns_df.empty:
-        returns_df.to_csv(
-            reports_dir / "financial_hypothesis_returns.csv", index=False
-        )
+        returns_df.to_csv(reports_dir / "financial_hypothesis_returns.csv", index=False)
     if not vol_df.empty:
-        vol_df.to_csv(
-            reports_dir / "financial_hypothesis_volatility.csv", index=False
-        )
+        vol_df.to_csv(reports_dir / "financial_hypothesis_volatility.csv", index=False)
     if not curve_spread_df.empty:
-        curve_spread_df.to_csv(
-            reports_dir / "financial_hypothesis_curve_spreads.csv", index=False
-        )
+        curve_spread_df.to_csv(reports_dir / "financial_hypothesis_curve_spreads.csv", index=False)
     if not cross_asset_df.empty:
-        cross_asset_df.to_csv(
-            reports_dir / "financial_hypothesis_cross_asset.csv", index=False
-        )
+        cross_asset_df.to_csv(reports_dir / "financial_hypothesis_cross_asset.csv", index=False)
 
     # Also save the distribution stats alongside, since they are referenced
     # when discussing Gaussianity of standardized features.
-    dist_stats.to_csv(
-        reports_dir / "distribution_stats_copy_for_report.csv", index=False
-    )
+    dist_stats.to_csv(reports_dir / "distribution_stats_copy_for_report.csv", index=False)
 
     LOGGER.info("Financial hypotheses verification completed.")
     LOGGER.info("Reports written to %s", reports_dir)
