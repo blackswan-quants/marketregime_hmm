@@ -1,12 +1,20 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<<<<<<< HEAD
 <svg xmlns:xlink="http://www.w3.org/1999/xlink" width="999.55125pt" height="423.150804pt" viewBox="0 0 999.55125 423.150804" xmlns="http://www.w3.org/2000/svg" version="1.1">
+=======
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="999.55125pt" height="423.214444pt" viewBox="0 0 999.55125 423.214444" xmlns="http://www.w3.org/2000/svg" version="1.1">
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
  <metadata>
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+<<<<<<< HEAD
     <dc:date>2026-03-25T08:40:31.299352</dc:date>
+=======
+    <dc:date>2026-02-17T18:51:35.267584</dc:date>
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -21,8 +29,13 @@
  </defs>
  <g id="figure_1">
   <g id="patch_1">
+<<<<<<< HEAD
    <path d="M 0 423.150804 
 L 999.55125 423.150804 
+=======
+   <path d="M 0 423.214444 
+L 999.55125 423.214444 
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
 L 999.55125 0 
 L 0 0 
 z
@@ -30,14 +43,20 @@ z
   </g>
   <g id="axes_1">
    <g id="patch_2">
+<<<<<<< HEAD
     <path d="M 48.90125 356.948676 
 L 992.35125 356.948676 
+=======
+    <path d="M 48.90125 357.012316 
+L 992.35125 357.012316 
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
 L 992.35125 23.837812 
 L 48.90125 23.837812 
 z
 " style="fill: #ffffff"/>
    </g>
    <g id="patch_3">
+<<<<<<< HEAD
     <path d="M 91.785341 356.948676 
 L 254.062922 356.948676 
 L 254.062922 23.837812 
@@ -140,10 +159,67 @@ L 91.785341 23.837812
 L 91.785341 23.837812 
 z
 " clip-path="url(#p3caad2b0fe)" style="fill: #3498db; opacity: 0.25; stroke: #3498db; stroke-linejoin: miter"/>
+=======
+    <path d="M 91.785341 357.012316 
+L 197.626927 357.012316 
+L 197.626927 23.837812 
+L 91.785341 23.837812 
+z
+" clip-path="url(#p61a44647ec)" style="fill: #2ecc71; opacity: 0.25; stroke: #2ecc71; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 197.626927 357.012316 
+L 318.067353 357.012316 
+L 318.067353 23.837812 
+L 197.626927 23.837812 
+z
+" clip-path="url(#p61a44647ec)" style="fill: #3498db; opacity: 0.25; stroke: #3498db; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 318.067353 357.012316 
+L 467.705457 357.012316 
+L 467.705457 23.837812 
+L 318.067353 23.837812 
+z
+" clip-path="url(#p61a44647ec)" style="fill: #e74c3c; opacity: 0.25; stroke: #e74c3c; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 467.705457 357.012316 
+L 949.467159 357.012316 
+L 949.467159 23.837812 
+L 467.705457 23.837812 
+z
+" clip-path="url(#p61a44647ec)" style="fill: #2ecc71; opacity: 0.25; stroke: #2ecc71; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 91.785341 357.012316 
+L 91.785341 357.012316 
+L 91.785341 23.837812 
+L 91.785341 23.837812 
+z
+" clip-path="url(#p61a44647ec)" style="fill: #2ecc71; opacity: 0.25; stroke: #2ecc71; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 91.785341 357.012316 
+L 91.785341 357.012316 
+L 91.785341 23.837812 
+L 91.785341 23.837812 
+z
+" clip-path="url(#p61a44647ec)" style="fill: #e74c3c; opacity: 0.25; stroke: #e74c3c; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 91.785341 357.012316 
+L 91.785341 357.012316 
+L 91.785341 23.837812 
+L 91.785341 23.837812 
+z
+" clip-path="url(#p61a44647ec)" style="fill: #3498db; opacity: 0.25; stroke: #3498db; stroke-linejoin: miter"/>
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
    </g>
    <g id="matplotlib.axis_1">
     <g id="xtick_1">
      <g id="line2d_1">
+<<<<<<< HEAD
       <path d="M 53.455974 356.948676 
 L 53.455974 23.837812 
 " clip-path="url(#p3caad2b0fe)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.3; stroke-width: 0.8; stroke-linecap: square"/>
@@ -151,16 +227,34 @@ L 53.455974 23.837812
      <g id="line2d_2">
       <defs>
        <path id="m2dab8a9f33" d="M 0 0 
+=======
+      <path d="M 73.536792 357.012316 
+L 73.536792 23.837812 
+" clip-path="url(#p61a44647ec)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.3; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_2">
+      <defs>
+       <path id="mdfe9f8d30c" d="M 0 0 
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
 L 0 3.5 
 " style="stroke: #000000; stroke-width: 0.8"/>
       </defs>
       <g>
+<<<<<<< HEAD
        <use xlink:href="#m2dab8a9f33" x="53.455974" y="356.948676" style="stroke: #000000; stroke-width: 0.8"/>
       </g>
      </g>
      <g id="text_1">
       <!-- 2021-04 -->
       <g transform="translate(22.440502 398.866493) rotate(-45) scale(0.1 -0.1)">
+=======
+       <use xlink:href="#mdfe9f8d30c" x="73.536792" y="357.012316" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_1">
+      <!-- 2025-03 -->
+      <g transform="translate(42.52132 398.930133) rotate(-45) scale(0.1 -0.1)">
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
        <defs>
         <path id="DejaVuSans-32" d="M 1228 531 
 L 3431 531 
@@ -207,6 +301,7 @@ Q 422 3509 836 4129
 Q 1250 4750 2034 4750 
 z
 " transform="scale(0.015625)"/>
+<<<<<<< HEAD
         <path id="DejaVuSans-31" d="M 794 531 
 L 1825 531 
 L 1825 4091 
@@ -273,6 +368,8 @@ L 68.389493 23.837812
       <!-- 2021-05 -->
       <g transform="translate(37.374022 398.866493) rotate(-45) scale(0.1 -0.1)">
        <defs>
+=======
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
         <path id="DejaVuSans-35" d="M 691 4666 
 L 3169 4666 
 L 3169 4134 
@@ -298,17 +395,133 @@ Q 953 2441 691 2322
 L 691 4666 
 z
 " transform="scale(0.015625)"/>
+<<<<<<< HEAD
+=======
+        <path id="DejaVuSans-2d" d="M 313 2009 
+L 1997 2009 
+L 1997 1497 
+L 313 1497 
+L 313 2009 
+z
+" transform="scale(0.015625)"/>
+        <path id="DejaVuSans-33" d="M 2597 2516 
+Q 3050 2419 3304 2112 
+Q 3559 1806 3559 1356 
+Q 3559 666 3084 287 
+Q 2609 -91 1734 -91 
+Q 1441 -91 1130 -33 
+Q 819 25 488 141 
+L 488 750 
+Q 750 597 1062 519 
+Q 1375 441 1716 441 
+Q 2309 441 2620 675 
+Q 2931 909 2931 1356 
+Q 2931 1769 2642 2001 
+Q 2353 2234 1838 2234 
+L 1294 2234 
+L 1294 2753 
+L 1863 2753 
+Q 2328 2753 2575 2939 
+Q 2822 3125 2822 3475 
+Q 2822 3834 2567 4026 
+Q 2313 4219 1838 4219 
+Q 1578 4219 1281 4162 
+Q 984 4106 628 3988 
+L 628 4550 
+Q 988 4650 1302 4700 
+Q 1616 4750 1894 4750 
+Q 2613 4750 3031 4423 
+Q 3450 4097 3450 3541 
+Q 3450 3153 3228 2886 
+Q 3006 2619 2597 2516 
+z
+" transform="scale(0.015625)"/>
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
        </defs>
        <use xlink:href="#DejaVuSans-32"/>
        <use xlink:href="#DejaVuSans-30" transform="translate(63.623047 0)"/>
        <use xlink:href="#DejaVuSans-32" transform="translate(127.246094 0)"/>
+<<<<<<< HEAD
        <use xlink:href="#DejaVuSans-31" transform="translate(190.869141 0)"/>
+=======
+       <use xlink:href="#DejaVuSans-35" transform="translate(190.869141 0)"/>
+       <use xlink:href="#DejaVuSans-2d" transform="translate(254.492188 0)"/>
+       <use xlink:href="#DejaVuSans-30" transform="translate(290.576172 0)"/>
+       <use xlink:href="#DejaVuSans-33" transform="translate(354.199219 0)"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_3">
+      <path d="M 186.677797 357.012316 
+L 186.677797 23.837812 
+" clip-path="url(#p61a44647ec)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.3; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_4">
+      <g>
+       <use xlink:href="#mdfe9f8d30c" x="186.677797" y="357.012316" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_2">
+      <!-- 2025-04 -->
+      <g transform="translate(155.662326 398.930133) rotate(-45) scale(0.1 -0.1)">
+       <defs>
+        <path id="DejaVuSans-34" d="M 2419 4116 
+L 825 1625 
+L 2419 1625 
+L 2419 4116 
+z
+M 2253 4666 
+L 3047 4666 
+L 3047 1625 
+L 3713 1625 
+L 3713 1100 
+L 3047 1100 
+L 3047 0 
+L 2419 0 
+L 2419 1100 
+L 313 1100 
+L 313 1709 
+L 2253 4666 
+z
+" transform="scale(0.015625)"/>
+       </defs>
+       <use xlink:href="#DejaVuSans-32"/>
+       <use xlink:href="#DejaVuSans-30" transform="translate(63.623047 0)"/>
+       <use xlink:href="#DejaVuSans-32" transform="translate(127.246094 0)"/>
+       <use xlink:href="#DejaVuSans-35" transform="translate(190.869141 0)"/>
+       <use xlink:href="#DejaVuSans-2d" transform="translate(254.492188 0)"/>
+       <use xlink:href="#DejaVuSans-30" transform="translate(290.576172 0)"/>
+       <use xlink:href="#DejaVuSans-34" transform="translate(354.199219 0)"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_5">
+      <path d="M 296.169093 357.012316 
+L 296.169093 23.837812 
+" clip-path="url(#p61a44647ec)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.3; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_6">
+      <g>
+       <use xlink:href="#mdfe9f8d30c" x="296.169093" y="357.012316" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_3">
+      <!-- 2025-05 -->
+      <g transform="translate(265.153622 398.930133) rotate(-45) scale(0.1 -0.1)">
+       <use xlink:href="#DejaVuSans-32"/>
+       <use xlink:href="#DejaVuSans-30" transform="translate(63.623047 0)"/>
+       <use xlink:href="#DejaVuSans-32" transform="translate(127.246094 0)"/>
+       <use xlink:href="#DejaVuSans-35" transform="translate(190.869141 0)"/>
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
        <use xlink:href="#DejaVuSans-2d" transform="translate(254.492188 0)"/>
        <use xlink:href="#DejaVuSans-30" transform="translate(290.576172 0)"/>
        <use xlink:href="#DejaVuSans-35" transform="translate(354.199219 0)"/>
       </g>
      </g>
     </g>
+<<<<<<< HEAD
     <g id="xtick_3">
      <g id="line2d_5">
       <path d="M 83.820797 356.948676 
@@ -323,6 +536,22 @@ L 83.820797 23.837812
      <g id="text_3">
       <!-- 2021-06 -->
       <g transform="translate(52.805326 398.866493) rotate(-45) scale(0.1 -0.1)">
+=======
+    <g id="xtick_4">
+     <g id="line2d_7">
+      <path d="M 409.310099 357.012316 
+L 409.310099 23.837812 
+" clip-path="url(#p61a44647ec)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.3; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_8">
+      <g>
+       <use xlink:href="#mdfe9f8d30c" x="409.310099" y="357.012316" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_4">
+      <!-- 2025-06 -->
+      <g transform="translate(378.294628 398.930133) rotate(-45) scale(0.1 -0.1)">
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
        <defs>
         <path id="DejaVuSans-36" d="M 2113 2584 
 Q 1688 2584 1439 2293 
@@ -358,13 +587,18 @@ z
        <use xlink:href="#DejaVuSans-32"/>
        <use xlink:href="#DejaVuSans-30" transform="translate(63.623047 0)"/>
        <use xlink:href="#DejaVuSans-32" transform="translate(127.246094 0)"/>
+<<<<<<< HEAD
        <use xlink:href="#DejaVuSans-31" transform="translate(190.869141 0)"/>
+=======
+       <use xlink:href="#DejaVuSans-35" transform="translate(190.869141 0)"/>
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
        <use xlink:href="#DejaVuSans-2d" transform="translate(254.492188 0)"/>
        <use xlink:href="#DejaVuSans-30" transform="translate(290.576172 0)"/>
        <use xlink:href="#DejaVuSans-36" transform="translate(354.199219 0)"/>
       </g>
      </g>
     </g>
+<<<<<<< HEAD
     <g id="xtick_4">
      <g id="line2d_7">
       <path d="M 98.754317 356.948676 
@@ -379,6 +613,22 @@ L 98.754317 23.837812
      <g id="text_4">
       <!-- 2021-07 -->
       <g transform="translate(67.738846 398.866493) rotate(-45) scale(0.1 -0.1)">
+=======
+    <g id="xtick_5">
+     <g id="line2d_9">
+      <path d="M 518.801395 357.012316 
+L 518.801395 23.837812 
+" clip-path="url(#p61a44647ec)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.3; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_10">
+      <g>
+       <use xlink:href="#mdfe9f8d30c" x="518.801395" y="357.012316" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_5">
+      <!-- 2025-07 -->
+      <g transform="translate(487.785924 398.930133) rotate(-45) scale(0.1 -0.1)">
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
        <defs>
         <path id="DejaVuSans-37" d="M 525 4666 
 L 3525 4666 
@@ -394,13 +644,18 @@ z
        <use xlink:href="#DejaVuSans-32"/>
        <use xlink:href="#DejaVuSans-30" transform="translate(63.623047 0)"/>
        <use xlink:href="#DejaVuSans-32" transform="translate(127.246094 0)"/>
+<<<<<<< HEAD
        <use xlink:href="#DejaVuSans-31" transform="translate(190.869141 0)"/>
+=======
+       <use xlink:href="#DejaVuSans-35" transform="translate(190.869141 0)"/>
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
        <use xlink:href="#DejaVuSans-2d" transform="translate(254.492188 0)"/>
        <use xlink:href="#DejaVuSans-30" transform="translate(290.576172 0)"/>
        <use xlink:href="#DejaVuSans-37" transform="translate(354.199219 0)"/>
       </g>
      </g>
     </g>
+<<<<<<< HEAD
     <g id="xtick_5">
      <g id="line2d_9">
       <path d="M 114.185621 356.948676 
@@ -415,6 +670,22 @@ L 114.185621 23.837812
      <g id="text_5">
       <!-- 2021-08 -->
       <g transform="translate(83.170149 398.866493) rotate(-45) scale(0.1 -0.1)">
+=======
+    <g id="xtick_6">
+     <g id="line2d_11">
+      <path d="M 631.942401 357.012316 
+L 631.942401 23.837812 
+" clip-path="url(#p61a44647ec)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.3; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_12">
+      <g>
+       <use xlink:href="#mdfe9f8d30c" x="631.942401" y="357.012316" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_6">
+      <!-- 2025-08 -->
+      <g transform="translate(600.92693 398.930133) rotate(-45) scale(0.1 -0.1)">
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
        <defs>
         <path id="DejaVuSans-38" d="M 2034 2216 
 Q 1584 2216 1326 1975 
@@ -459,13 +730,18 @@ z
        <use xlink:href="#DejaVuSans-32"/>
        <use xlink:href="#DejaVuSans-30" transform="translate(63.623047 0)"/>
        <use xlink:href="#DejaVuSans-32" transform="translate(127.246094 0)"/>
+<<<<<<< HEAD
        <use xlink:href="#DejaVuSans-31" transform="translate(190.869141 0)"/>
+=======
+       <use xlink:href="#DejaVuSans-35" transform="translate(190.869141 0)"/>
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
        <use xlink:href="#DejaVuSans-2d" transform="translate(254.492188 0)"/>
        <use xlink:href="#DejaVuSans-30" transform="translate(290.576172 0)"/>
        <use xlink:href="#DejaVuSans-38" transform="translate(354.199219 0)"/>
       </g>
      </g>
     </g>
+<<<<<<< HEAD
     <g id="xtick_6">
      <g id="line2d_11">
       <path d="M 129.616924 356.948676 
@@ -480,6 +756,22 @@ L 129.616924 23.837812
      <g id="text_6">
       <!-- 2021-09 -->
       <g transform="translate(98.601453 398.866493) rotate(-45) scale(0.1 -0.1)">
+=======
+    <g id="xtick_7">
+     <g id="line2d_13">
+      <path d="M 745.083407 357.012316 
+L 745.083407 23.837812 
+" clip-path="url(#p61a44647ec)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.3; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_14">
+      <g>
+       <use xlink:href="#mdfe9f8d30c" x="745.083407" y="357.012316" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_7">
+      <!-- 2025-09 -->
+      <g transform="translate(714.067935 398.930133) rotate(-45) scale(0.1 -0.1)">
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
        <defs>
         <path id="DejaVuSans-39" d="M 703 97 
 L 703 672 
@@ -515,13 +807,18 @@ z
        <use xlink:href="#DejaVuSans-32"/>
        <use xlink:href="#DejaVuSans-30" transform="translate(63.623047 0)"/>
        <use xlink:href="#DejaVuSans-32" transform="translate(127.246094 0)"/>
+<<<<<<< HEAD
        <use xlink:href="#DejaVuSans-31" transform="translate(190.869141 0)"/>
+=======
+       <use xlink:href="#DejaVuSans-35" transform="translate(190.869141 0)"/>
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
        <use xlink:href="#DejaVuSans-2d" transform="translate(254.492188 0)"/>
        <use xlink:href="#DejaVuSans-30" transform="translate(290.576172 0)"/>
        <use xlink:href="#DejaVuSans-39" transform="translate(354.199219 0)"/>
       </g>
      </g>
     </g>
+<<<<<<< HEAD
     <g id="xtick_7">
      <g id="line2d_13">
       <path d="M 144.550444 356.948676 
@@ -687,12 +984,42 @@ Q 2613 4750 3031 4423
 Q 3450 4097 3450 3541 
 Q 3450 3153 3228 2886 
 Q 3006 2619 2597 2516 
+=======
+    <g id="xtick_8">
+     <g id="line2d_15">
+      <path d="M 854.574703 357.012316 
+L 854.574703 23.837812 
+" clip-path="url(#p61a44647ec)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.3; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_16">
+      <g>
+       <use xlink:href="#mdfe9f8d30c" x="854.574703" y="357.012316" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_8">
+      <!-- 2025-10 -->
+      <g transform="translate(823.559231 398.930133) rotate(-45) scale(0.1 -0.1)">
+       <defs>
+        <path id="DejaVuSans-31" d="M 794 531 
+L 1825 531 
+L 1825 4091 
+L 703 3866 
+L 703 4441 
+L 1819 4666 
+L 2450 4666 
+L 2450 531 
+L 3481 531 
+L 3481 0 
+L 794 0 
+L 794 531 
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
 z
 " transform="scale(0.015625)"/>
        </defs>
        <use xlink:href="#DejaVuSans-32"/>
        <use xlink:href="#DejaVuSans-30" transform="translate(63.623047 0)"/>
        <use xlink:href="#DejaVuSans-32" transform="translate(127.246094 0)"/>
+<<<<<<< HEAD
        <use xlink:href="#DejaVuSans-32" transform="translate(190.869141 0)"/>
        <use xlink:href="#DejaVuSans-2d" transform="translate(254.492188 0)"/>
        <use xlink:href="#DejaVuSans-30" transform="translate(290.576172 0)"/>
@@ -1725,6 +2052,8 @@ L 871.812856 23.837812
        <use xlink:href="#DejaVuSans-32"/>
        <use xlink:href="#DejaVuSans-30" transform="translate(63.623047 0)"/>
        <use xlink:href="#DejaVuSans-32" transform="translate(127.246094 0)"/>
+=======
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
        <use xlink:href="#DejaVuSans-35" transform="translate(190.869141 0)"/>
        <use xlink:href="#DejaVuSans-2d" transform="translate(254.492188 0)"/>
        <use xlink:href="#DejaVuSans-31" transform="translate(290.576172 0)"/>
@@ -1732,6 +2061,7 @@ L 871.812856 23.837812
       </g>
      </g>
     </g>
+<<<<<<< HEAD
     <g id="xtick_56">
      <g id="line2d_111">
       <path d="M 887.24416 356.948676 
@@ -1746,6 +2076,22 @@ L 887.24416 23.837812
      <g id="text_56">
       <!-- 2025-11 -->
       <g transform="translate(856.228689 398.866493) rotate(-45) scale(0.1 -0.1)">
+=======
+    <g id="xtick_9">
+     <g id="line2d_17">
+      <path d="M 967.715708 357.012316 
+L 967.715708 23.837812 
+" clip-path="url(#p61a44647ec)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.3; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_18">
+      <g>
+       <use xlink:href="#mdfe9f8d30c" x="967.715708" y="357.012316" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_9">
+      <!-- 2025-11 -->
+      <g transform="translate(936.700237 398.930133) rotate(-45) scale(0.1 -0.1)">
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
        <use xlink:href="#DejaVuSans-32"/>
        <use xlink:href="#DejaVuSans-30" transform="translate(63.623047 0)"/>
        <use xlink:href="#DejaVuSans-32" transform="translate(127.246094 0)"/>
@@ -1756,6 +2102,7 @@ L 887.24416 23.837812
       </g>
      </g>
     </g>
+<<<<<<< HEAD
     <g id="xtick_57">
      <g id="line2d_113">
       <path d="M 902.17768 356.948676 
@@ -1903,6 +2250,11 @@ L 977.343063 23.837812
     <g id="text_63">
      <!-- Date -->
      <g transform="translate(506.285313 413.455179) scale(0.12 -0.12)">
+=======
+    <g id="text_10">
+     <!-- Date -->
+     <g transform="translate(506.285313 413.518819) scale(0.12 -0.12)">
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
       <defs>
        <path id="DejaVuSans-44" d="M 1259 4147 
 L 1259 519 
@@ -2012,6 +2364,7 @@ z
    </g>
    <g id="matplotlib.axis_2">
     <g id="ytick_1">
+<<<<<<< HEAD
      <g id="line2d_125">
       <path d="M 48.90125 334.270534 
 L 992.35125 334.270534 
@@ -2020,10 +2373,21 @@ L 992.35125 334.270534
      <g id="line2d_126">
       <defs>
        <path id="m5e60651beb" d="M 0 0 
+=======
+     <g id="line2d_19">
+      <path d="M 48.90125 336.628113 
+L 992.35125 336.628113 
+" clip-path="url(#p61a44647ec)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.3; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_20">
+      <defs>
+       <path id="mf550e368a3" d="M 0 0 
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
 L -3.5 0 
 " style="stroke: #000000; stroke-width: 0.8"/>
       </defs>
       <g>
+<<<<<<< HEAD
        <use xlink:href="#m5e60651beb" x="48.90125" y="334.270534" style="stroke: #000000; stroke-width: 0.8"/>
       </g>
      </g>
@@ -2051,11 +2415,21 @@ L 992.35125 291.535386
       <!-- 400 -->
       <g transform="translate(22.81375 295.334605) scale(0.1 -0.1)">
        <use xlink:href="#DejaVuSans-34"/>
+=======
+       <use xlink:href="#mf550e368a3" x="48.90125" y="336.628113" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_11">
+      <!-- 500 -->
+      <g transform="translate(22.81375 340.427332) scale(0.1 -0.1)">
+       <use xlink:href="#DejaVuSans-35"/>
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
        <use xlink:href="#DejaVuSans-30" transform="translate(63.623047 0)"/>
        <use xlink:href="#DejaVuSans-30" transform="translate(127.246094 0)"/>
       </g>
      </g>
     </g>
+<<<<<<< HEAD
     <g id="ytick_3">
      <g id="line2d_129">
       <path d="M 48.90125 248.800238 
@@ -2071,12 +2445,50 @@ L 992.35125 248.800238
       <!-- 450 -->
       <g transform="translate(22.81375 252.599457) scale(0.1 -0.1)">
        <use xlink:href="#DejaVuSans-34"/>
+=======
+    <g id="ytick_2">
+     <g id="line2d_21">
+      <path d="M 48.90125 296.444777 
+L 992.35125 296.444777 
+" clip-path="url(#p61a44647ec)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.3; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_22">
+      <g>
+       <use xlink:href="#mf550e368a3" x="48.90125" y="296.444777" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_12">
+      <!-- 525 -->
+      <g transform="translate(22.81375 300.243996) scale(0.1 -0.1)">
+       <use xlink:href="#DejaVuSans-35"/>
+       <use xlink:href="#DejaVuSans-32" transform="translate(63.623047 0)"/>
+       <use xlink:href="#DejaVuSans-35" transform="translate(127.246094 0)"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_3">
+     <g id="line2d_23">
+      <path d="M 48.90125 256.261442 
+L 992.35125 256.261442 
+" clip-path="url(#p61a44647ec)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.3; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_24">
+      <g>
+       <use xlink:href="#mf550e368a3" x="48.90125" y="256.261442" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_13">
+      <!-- 550 -->
+      <g transform="translate(22.81375 260.06066) scale(0.1 -0.1)">
+       <use xlink:href="#DejaVuSans-35"/>
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
        <use xlink:href="#DejaVuSans-35" transform="translate(63.623047 0)"/>
        <use xlink:href="#DejaVuSans-30" transform="translate(127.246094 0)"/>
       </g>
      </g>
     </g>
     <g id="ytick_4">
+<<<<<<< HEAD
      <g id="line2d_131">
       <path d="M 48.90125 206.06509 
 L 992.35125 206.06509 
@@ -2093,10 +2505,29 @@ L 992.35125 206.06509
        <use xlink:href="#DejaVuSans-35"/>
        <use xlink:href="#DejaVuSans-30" transform="translate(63.623047 0)"/>
        <use xlink:href="#DejaVuSans-30" transform="translate(127.246094 0)"/>
+=======
+     <g id="line2d_25">
+      <path d="M 48.90125 216.078106 
+L 992.35125 216.078106 
+" clip-path="url(#p61a44647ec)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.3; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_26">
+      <g>
+       <use xlink:href="#mf550e368a3" x="48.90125" y="216.078106" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_14">
+      <!-- 575 -->
+      <g transform="translate(22.81375 219.877324) scale(0.1 -0.1)">
+       <use xlink:href="#DejaVuSans-35"/>
+       <use xlink:href="#DejaVuSans-37" transform="translate(63.623047 0)"/>
+       <use xlink:href="#DejaVuSans-35" transform="translate(127.246094 0)"/>
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
       </g>
      </g>
     </g>
     <g id="ytick_5">
+<<<<<<< HEAD
      <g id="line2d_133">
       <path d="M 48.90125 163.329941 
 L 992.35125 163.329941 
@@ -2130,12 +2561,28 @@ L 992.35125 120.594793
      <g id="text_69">
       <!-- 600 -->
       <g transform="translate(22.81375 124.394012) scale(0.1 -0.1)">
+=======
+     <g id="line2d_27">
+      <path d="M 48.90125 175.89477 
+L 992.35125 175.89477 
+" clip-path="url(#p61a44647ec)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.3; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_28">
+      <g>
+       <use xlink:href="#mf550e368a3" x="48.90125" y="175.89477" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_15">
+      <!-- 600 -->
+      <g transform="translate(22.81375 179.693989) scale(0.1 -0.1)">
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
        <use xlink:href="#DejaVuSans-36"/>
        <use xlink:href="#DejaVuSans-30" transform="translate(63.623047 0)"/>
        <use xlink:href="#DejaVuSans-30" transform="translate(127.246094 0)"/>
       </g>
      </g>
     </g>
+<<<<<<< HEAD
     <g id="ytick_7">
      <g id="line2d_137">
       <path d="M 48.90125 77.859645 
@@ -2150,6 +2597,42 @@ L 992.35125 77.859645
      <g id="text_70">
       <!-- 650 -->
       <g transform="translate(22.81375 81.658864) scale(0.1 -0.1)">
+=======
+    <g id="ytick_6">
+     <g id="line2d_29">
+      <path d="M 48.90125 135.711434 
+L 992.35125 135.711434 
+" clip-path="url(#p61a44647ec)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.3; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_30">
+      <g>
+       <use xlink:href="#mf550e368a3" x="48.90125" y="135.711434" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_16">
+      <!-- 625 -->
+      <g transform="translate(22.81375 139.510653) scale(0.1 -0.1)">
+       <use xlink:href="#DejaVuSans-36"/>
+       <use xlink:href="#DejaVuSans-32" transform="translate(63.623047 0)"/>
+       <use xlink:href="#DejaVuSans-35" transform="translate(127.246094 0)"/>
+      </g>
+     </g>
+    </g>
+    <g id="ytick_7">
+     <g id="line2d_31">
+      <path d="M 48.90125 95.528098 
+L 992.35125 95.528098 
+" clip-path="url(#p61a44647ec)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.3; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_32">
+      <g>
+       <use xlink:href="#mf550e368a3" x="48.90125" y="95.528098" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_17">
+      <!-- 650 -->
+      <g transform="translate(22.81375 99.327317) scale(0.1 -0.1)">
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
        <use xlink:href="#DejaVuSans-36"/>
        <use xlink:href="#DejaVuSans-35" transform="translate(63.623047 0)"/>
        <use xlink:href="#DejaVuSans-30" transform="translate(127.246094 0)"/>
@@ -2157,6 +2640,7 @@ L 992.35125 77.859645
      </g>
     </g>
     <g id="ytick_8">
+<<<<<<< HEAD
      <g id="line2d_139">
       <path d="M 48.90125 35.124497 
 L 992.35125 35.124497 
@@ -2179,6 +2663,30 @@ L 992.35125 35.124497
     <g id="text_72">
      <!-- SPY Close Price -->
      <g transform="translate(16.318125 236.146057) rotate(-90) scale(0.12 -0.12)">
+=======
+     <g id="line2d_33">
+      <path d="M 48.90125 55.344762 
+L 992.35125 55.344762 
+" clip-path="url(#p61a44647ec)" style="fill: none; stroke: #b0b0b0; stroke-opacity: 0.3; stroke-width: 0.8; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_34">
+      <g>
+       <use xlink:href="#mf550e368a3" x="48.90125" y="55.344762" style="stroke: #000000; stroke-width: 0.8"/>
+      </g>
+     </g>
+     <g id="text_18">
+      <!-- 675 -->
+      <g transform="translate(22.81375 59.143981) scale(0.1 -0.1)">
+       <use xlink:href="#DejaVuSans-36"/>
+       <use xlink:href="#DejaVuSans-37" transform="translate(63.623047 0)"/>
+       <use xlink:href="#DejaVuSans-35" transform="translate(127.246094 0)"/>
+      </g>
+     </g>
+    </g>
+    <g id="text_19">
+     <!-- SPY Close Price -->
+     <g transform="translate(16.318125 236.177877) rotate(-90) scale(0.12 -0.12)">
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
       <defs>
        <path id="DejaVuSans-53" d="M 3425 4513 
 L 3425 3897 
@@ -2395,6 +2903,7 @@ z
      </g>
     </g>
    </g>
+<<<<<<< HEAD
    <g id="patch_16">
     <path d="M 48.90125 356.948676 
 L 48.90125 23.837812 
@@ -2411,11 +2920,33 @@ L 992.35125 356.948676
 " style="fill: none; stroke: #000000; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
    </g>
    <g id="patch_19">
+=======
+   <g id="patch_10">
+    <path d="M 48.90125 357.012316 
+L 48.90125 23.837813 
+" style="fill: none; stroke: #000000; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 992.35125 357.012316 
+L 992.35125 23.837813 
+" style="fill: none; stroke: #000000; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 48.90125 357.012316 
+L 992.35125 357.012316 
+" style="fill: none; stroke: #000000; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_13">
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
     <path d="M 48.90125 23.837812 
 L 992.35125 23.837812 
 " style="fill: none; stroke: #000000; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
    </g>
+<<<<<<< HEAD
    <g id="text_73">
+=======
+   <g id="text_20">
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
     <!-- SPX Price with DTW Regime Clusters -->
     <g transform="translate(375.502031 17.837812) scale(0.14 -0.14)">
      <defs>
@@ -2886,6 +3417,7 @@ z
     </g>
    </g>
    <g id="legend_1">
+<<<<<<< HEAD
     <g id="patch_20">
      <path d="M 904.67 351.948676 
 L 985.35125 351.948676 
@@ -2908,6 +3440,30 @@ L 926.67 298.334614
     <g id="text_74">
      <!-- SPY Close -->
      <g transform="translate(934.67 301.834614) scale(0.1 -0.1)">
+=======
+    <g id="patch_14">
+     <path d="M 904.67 352.012316 
+L 985.35125 352.012316 
+Q 987.35125 352.012316 987.35125 350.012316 
+L 987.35125 292.299816 
+Q 987.35125 290.299816 985.35125 290.299816 
+L 904.67 290.299816 
+Q 902.67 290.299816 902.67 292.299816 
+L 902.67 350.012316 
+Q 902.67 352.012316 904.67 352.012316 
+z
+" style="fill: #ffffff; opacity: 0.8; stroke: #cccccc; stroke-linejoin: miter"/>
+    </g>
+    <g id="line2d_35">
+     <path d="M 906.67 298.398253 
+L 916.67 298.398253 
+L 926.67 298.398253 
+" style="fill: none; stroke: #000000; stroke-width: 1.5; stroke-linecap: square"/>
+    </g>
+    <g id="text_21">
+     <!-- SPY Close -->
+     <g transform="translate(934.67 301.898253) scale(0.1 -0.1)">
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
       <use xlink:href="#DejaVuSans-53"/>
       <use xlink:href="#DejaVuSans-50" transform="translate(63.476562 0)"/>
       <use xlink:href="#DejaVuSans-59" transform="translate(121.529297 0)"/>
@@ -2919,6 +3475,7 @@ L 926.67 298.334614
       <use xlink:href="#DejaVuSans-65" transform="translate(425.289062 0)"/>
      </g>
     </g>
+<<<<<<< HEAD
     <g id="patch_21">
      <path d="M 906.67 316.512739 
 L 926.67 316.512739 
@@ -2930,6 +3487,19 @@ z
     <g id="text_75">
      <!-- Regime 1 -->
      <g transform="translate(934.67 316.512739) scale(0.1 -0.1)">
+=======
+    <g id="patch_15">
+     <path d="M 906.67 316.576378 
+L 926.67 316.576378 
+L 926.67 309.576378 
+L 906.67 309.576378 
+z
+" style="fill: #2ecc71; opacity: 0.25; stroke: #2ecc71; stroke-linejoin: miter"/>
+    </g>
+    <g id="text_22">
+     <!-- Regime 1 -->
+     <g transform="translate(934.67 316.576378) scale(0.1 -0.1)">
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
       <defs>
        <path id="DejaVuSans-52" d="M 2841 2188 
 Q 3044 2119 3236 1894 
@@ -3034,6 +3604,7 @@ z
       <use xlink:href="#DejaVuSans-31" transform="translate(408.488281 0)"/>
      </g>
     </g>
+<<<<<<< HEAD
     <g id="patch_22">
      <path d="M 906.67 331.190864 
 L 926.67 331.190864 
@@ -3045,6 +3616,19 @@ z
     <g id="text_76">
      <!-- Regime 2 -->
      <g transform="translate(934.67 331.190864) scale(0.1 -0.1)">
+=======
+    <g id="patch_16">
+     <path d="M 906.67 331.254503 
+L 926.67 331.254503 
+L 926.67 324.254503 
+L 906.67 324.254503 
+z
+" style="fill: #e74c3c; opacity: 0.25; stroke: #e74c3c; stroke-linejoin: miter"/>
+    </g>
+    <g id="text_23">
+     <!-- Regime 2 -->
+     <g transform="translate(934.67 331.254503) scale(0.1 -0.1)">
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
       <use xlink:href="#DejaVuSans-52"/>
       <use xlink:href="#DejaVuSans-65" transform="translate(64.982422 0)"/>
       <use xlink:href="#DejaVuSans-67" transform="translate(126.505859 0)"/>
@@ -3055,6 +3639,7 @@ z
       <use xlink:href="#DejaVuSans-32" transform="translate(408.488281 0)"/>
      </g>
     </g>
+<<<<<<< HEAD
     <g id="patch_23">
      <path d="M 906.67 345.868989 
 L 926.67 345.868989 
@@ -3066,6 +3651,19 @@ z
     <g id="text_77">
      <!-- Regime 3 -->
      <g transform="translate(934.67 345.868989) scale(0.1 -0.1)">
+=======
+    <g id="patch_17">
+     <path d="M 906.67 345.932628 
+L 926.67 345.932628 
+L 926.67 338.932628 
+L 906.67 338.932628 
+z
+" style="fill: #3498db; opacity: 0.25; stroke: #3498db; stroke-linejoin: miter"/>
+    </g>
+    <g id="text_24">
+     <!-- Regime 3 -->
+     <g transform="translate(934.67 345.932628) scale(0.1 -0.1)">
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
       <use xlink:href="#DejaVuSans-52"/>
       <use xlink:href="#DejaVuSans-65" transform="translate(64.982422 0)"/>
       <use xlink:href="#DejaVuSans-67" transform="translate(126.505859 0)"/>
@@ -3077,6 +3675,7 @@ z
      </g>
     </g>
    </g>
+<<<<<<< HEAD
    <g id="line2d_142">
     <path d="M 91.785341 295.647288 
 L 93.776477 295.43369 
@@ -4199,12 +4798,184 @@ L 948.969375 51.098897
 L 949.467159 58.731388 
 L 949.467159 58.731388 
 " clip-path="url(#p3caad2b0fe)" style="fill: none; stroke: #000000; stroke-width: 1.5; stroke-linecap: square"/>
+=======
+   <g id="line2d_36">
+    <path d="M 91.785341 219.614239 
+L 95.435051 214.711872 
+L 106.38418 238.982607 
+L 110.03389 246.424561 
+L 113.6836 241.940101 
+L 117.33331 253.834368 
+L 120.98302 235.703647 
+L 131.932149 228.904627 
+L 135.581859 238.500407 
+L 139.231569 228.9207 
+L 142.881279 231.058453 
+L 146.530989 233.45338 
+L 157.480118 217.653292 
+L 161.129828 215.499466 
+L 164.779538 226.140013 
+L 168.429248 228.936773 
+L 172.078958 246.890688 
+L 183.028088 241.554341 
+L 186.677797 238.532554 
+L 190.327507 232.714007 
+L 193.977217 276.128083 
+L 197.626927 327.787779 
+L 208.576057 329.314746 
+L 212.225766 341.86802 
+L 215.875476 266.918062 
+L 219.525186 296.926977 
+L 223.174896 282.010923 
+L 234.124026 273.990329 
+L 237.773735 275.999496 
+L 241.423445 295.271424 
+L 245.073155 294.210584 
+L 248.722865 294.210584 
+L 259.671995 314.157592 
+L 263.321705 293.326551 
+L 266.971414 279.712436 
+L 270.621124 261.822815 
+L 274.270834 255.425628 
+L 285.219964 254.750548 
+L 288.869674 249.607081 
+L 292.519383 249.269541 
+L 296.169093 242.663401 
+L 299.818803 229.54756 
+L 310.767933 234.51422 
+L 314.417643 242.116907 
+L 318.067353 238.211087 
+L 321.717062 232.280027 
+L 325.366772 233.292647 
+L 336.315902 203.476612 
+L 339.965612 197.095498 
+L 343.615322 195.889998 
+L 347.265031 191.309098 
+L 350.914741 185.072644 
+L 361.863871 184.027877 
+L 365.513581 187.419351 
+L 369.163291 203.283732 
+L 372.813 203.171218 
+L 376.46271 209.391599 
+L 391.06155 190.264331 
+L 394.71126 195.648898 
+L 398.36097 191.968104 
+L 402.010679 192.819991 
+L 412.959809 187.708671 
+L 416.609519 182.147297 
+L 420.259229 182.484837 
+L 423.908939 187.146104 
+L 427.558648 177.453883 
+L 438.507778 176.601997 
+L 442.157488 170.97633 
+L 445.807198 173.644503 
+L 449.456908 169.91549 
+L 453.106618 180.797137 
+L 464.055747 171.538896 
+L 467.705457 179.832737 
+L 471.355167 179.977397 
+L 478.654587 185.169084 
+L 489.603716 175.685817 
+L 493.253426 165.013123 
+L 496.903136 164.514849 
+L 500.552846 156.783575 
+L 504.202556 152.009795 
+L 515.151685 147.155648 
+L 518.801395 147.669995 
+L 522.451105 143.137315 
+L 526.100815 135.164941 
+L 540.699654 142.494381 
+L 544.349364 143.249828 
+L 547.999074 137.286621 
+L 551.648784 134.361274 
+L 555.298494 137.945628 
+L 566.247623 136.129341 
+L 569.897333 140.340554 
+L 573.547043 137.029448 
+L 577.196753 130.92158 
+L 580.846463 131.564514 
+L 591.795592 129.683934 
+L 595.445302 129.555347 
+L 599.095012 120.98826 
+L 602.744722 120.55428 
+L 606.394432 116.375213 
+L 617.343561 116.55202 
+L 620.993271 119.25234 
+L 624.642981 120.45784 
+L 628.292691 124.50832 
+L 631.942401 140.999561 
+L 642.89153 125.922773 
+L 646.54124 130.889434 
+L 650.19095 123.383187 
+L 653.84066 123.9779 
+L 657.49037 116.198406 
+L 668.4395 118.304013 
+L 672.089209 107.358072 
+L 675.738919 103.757645 
+L 679.388629 103.661205 
+L 683.038339 106.072206 
+L 693.987469 106.345452 
+L 697.637178 111.971119 
+L 701.286888 114.719659 
+L 704.936598 118.705846 
+L 708.586308 103.130785 
+L 719.535438 107.631319 
+L 723.185147 103.355812 
+L 726.834857 100.960885 
+L 730.484567 97.312238 
+L 734.134277 103.500472 
+L 748.733117 111.071013 
+L 752.382826 105.750739 
+L 756.032536 97.151505 
+L 759.682246 100.012559 
+L 770.631376 97.456898 
+L 774.281086 94.997678 
+L 777.930795 91.951781 
+L 781.580505 83.296291 
+L 785.230215 83.601684 
+L 796.179345 78.088531 
+L 799.829055 79.567277 
+L 803.478765 80.772777 
+L 807.128474 75.790044 
+L 810.778184 73.60407 
+L 821.727314 68.58919 
+L 825.377024 74.263077 
+L 829.026734 77.783137 
+L 832.676443 82.749797 
+L 836.326153 76.64193 
+L 847.275283 73.65229 
+L 854.574703 65.776356 
+L 858.224412 64.715516 
+L 861.874122 64.699443 
+L 872.823252 60.825769 
+L 876.472962 64.77981 
+L 880.122672 58.446916 
+L 883.772382 61.500849 
+L 887.422091 90.529291 
+L 902.020931 75.91863 
+L 905.670641 71.28951 
+L 909.320351 78.409997 
+L 912.97006 72.511084 
+L 923.91919 61.340116 
+L 927.5689 61.340116 
+L 931.21861 66.933637 
+L 934.86832 60.761476 
+L 938.518029 51.953289 
+L 949.467159 38.982108 
+L 949.467159 38.982108 
+" clip-path="url(#p61a44647ec)" style="fill: none; stroke: #000000; stroke-width: 1.5; stroke-linecap: square"/>
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
    </g>
   </g>
  </g>
  <defs>
+<<<<<<< HEAD
   <clipPath id="p3caad2b0fe">
    <rect x="48.90125" y="23.837812" width="943.45" height="333.110864"/>
+=======
+  <clipPath id="p61a44647ec">
+   <rect x="48.90125" y="23.837812" width="943.45" height="333.174503"/>
+>>>>>>> d088731 (feat: regime detection via dtw clustering)
   </clipPath>
  </defs>
 </svg>
