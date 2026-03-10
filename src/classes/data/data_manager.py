@@ -16,10 +16,13 @@ from typing import Dict, List, Optional, Union
 import pandas as pd
 import requests
 import yfinance as yf
+from dotenv import load_dotenv
 from pandas.tseries.holiday import USFederalHolidayCalendar
 from pandas.tseries.offsets import CustomBusinessDay
 
 logger = logging.getLogger(__name__)
+
+NUM_YEARS = 5
 
 # Configure US business days (excluding federal holidays)
 US_BD = CustomBusinessDay(calendar=USFederalHolidayCalendar())
@@ -141,13 +144,13 @@ class DataManager:
             f"FRED API request failed for {series_id} after {max_retries} attempts. " f"Last error: {last_err}"
         )
 
-    def fetch_and_save_fred_data(self, api_key: str, months: int = 12) -> Dict[str, pd.DataFrame]:
+    def fetch_and_save_fred_data(self, api_key: str, months: int) -> Dict[str, pd.DataFrame]:
         """
         Fetch macroeconomic data from FRED API and save as raw CSVs.
 
         Args:
             api_key: FRED API key (or set FRED_API_KEY environment variable)
-            months: Number of months to fetch (default 12)
+            months: Number of months to fetch
 
         Returns:
             Dictionary of fetched DataFrames
@@ -175,9 +178,9 @@ class DataManager:
         Fetch data from Yahoo Finance and save as raw CSVs.
 
         Args:
-            months: Number of months to fetch (default 12)
+            months: Number of months to fetch
         """
-        tickers = ["MOVE", "TLT"]
+        tickers = ["MOVE", "TLT", "SPY"]
         start_date = self._n_months_ago(datetime.strptime("2025-11-01", "%Y-%m-%d"), months)
         end_date = datetime.now(timezone.utc)
 
@@ -197,6 +200,10 @@ class DataManager:
         # Save TLT data
         tlt_data = data.xs("TLT", level=1, axis=1)
         tlt_data.to_csv(os.path.join(self.raw_dir, "TLT.csv"))
+
+        # Save SPY data
+        spy_data = data.xs("SPY", level=1, axis=1)
+        spy_data.to_csv(os.path.join(self.raw_dir, "SPY.csv"))
 
     def _save_csv(self, df: pd.DataFrame, name: str) -> None:
         """Save DataFrame to CSV in raw directory."""
@@ -298,7 +305,7 @@ class DataManager:
             df[col] = df[col].round(7)
         return df
 
-    def check_anomalies_macroeconomic(self, df: pd.DataFrame) -> pd.DataFrame:
+    def check_anomalies_macroeconomic(self, df: pd.DataFrame, series_name: str = "") -> pd.DataFrame:
         """
         Check for anomalies in macroeconomic data.
 
@@ -311,12 +318,12 @@ class DataManager:
         Returns:
             DataFrame if no anomalies found
         """
-        if (df["value"] < 0).any():
-            raise ValueError("Anomaly detected: Negative values found in 'value' column.")
+        if series_name != "yield_curve_10y2y" and (df["value"] < 0).any():
+            raise ValueError(f"Anomaly detected in {series_name}: Negative values found in 'value' column.")
         if (df["date"].duplicated()).any():
-            raise ValueError("Anomaly detected: Duplicate rows found.")
+            raise ValueError(f"Anomaly detected in {series_name}: Duplicate rows found.")
         if df.isnull().values.any():
-            raise ValueError("Anomaly detected: Null values found after cleaning.")
+            raise ValueError(f"Anomaly detected in {series_name}: Null values found after cleaning.")
         return df
 
     def check_time_gaps(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -425,7 +432,7 @@ class DataManager:
             df = self.check_time_gaps(df)
 
         df = self.percent_to_decimal(df, ["value"])
-        df = self.check_anomalies_macroeconomic(df)
+        df = self.check_anomalies_macroeconomic(df, series_name=name)
 
         df["date"] = pd.to_datetime(df["date"])
         df = df.set_index("date")
@@ -448,6 +455,9 @@ class DataManager:
         df.columns = df.columns.str.lower()
         if "caldt" in df.columns:
             df = df.rename(columns={"caldt": "date"})
+
+        if "volume" not in df.columns:
+            df["volume"] = 0.0
 
         df_subset = df[["date", "open", "high", "low", "close", "volume"]]
         df = df_subset
@@ -490,14 +500,14 @@ class DataManager:
         self.save_processed_data(curve_10y_2y, name="yield_curve_spread")
 
         # Load and clean SPY
-        spy = self.load_csv("SPY_1min_20231027_20251027.csv")
+        spy = self.load_csv("SPY.csv")
         spy = self.clean_price_data(spy, "SPY")
         spy_missing = self.missing_dates(spy)
         spy = spy.ffill()
         self.save_processed_data(spy, name="spx")
 
         # Load and clean VIX
-        vix = self.load_csv("^VIX_1day_20231027_20251027.csv")
+        vix = self.load_csv("vix_5yr_full.csv")
         vix = self.clean_price_data(vix, "VIX")
         vix = vix.ffill()
         self.save_processed_data(vix, name="vix")
@@ -593,15 +603,15 @@ class DataManager:
     # Datasets to validate
     DATASETS = [
         "yield_curve_10y_2y_spread",
-        "^VIX_1day_20231027_20251027",
-        "SPY_1min_20231027_20251027",
+        "vix_5yr_full",
+        "SPY",
     ]
 
     # Mapping of dataset filenames to display names
     DATASET_NAMES = {
-        "SPY_1min_20231027_20251027": "SPY",
+        "SPY": "SPY",
         "yield_curve_10y_2y_spread": "Curve 10y-2y",
-        "^VIX_1day_20231027_20251027": "VIX",
+        "vix_5yr_full": "VIX",
     }
 
     def get_missing_business_dates(self, df: pd.DataFrame, freq: str):
@@ -637,14 +647,15 @@ class DataManager:
         """
         Validate the cleaned dataset for anomalies.
         """
-        df_missing_dates = []
         missing_dates_dict = {}
         note = {
             "2025-01-09": "There is dirty data in dataset Curve 10y-2y",
         }
 
         for name in self.DATASETS:
+            df_missing_dates = []
             df = pd.read_csv(f"data/raw/{name}.csv")
+            df.columns = df.columns.str.lower()
             if name not in ["yield_curve_10y_2y_spread"]:
                 df = df.rename(columns={"caldt": "date"})
                 df_missing_dates.extend(self.get_missing_business_dates(df, "B"))
@@ -685,14 +696,17 @@ if __name__ == "__main__":
     # Example usage
     manager = DataManager()
 
+    # Load local valid key.env automatically
+    load_dotenv(".env")
+
     # Option 1:
     # Fetch fresh data from FRED
     # api_key = os.getenv("FRED_API_KEY")
     # if api_key:
-    #     manager.fetch_and_save_fred_data(api_key, months=12)
+    #     manager.fetch_and_save_fred_data(api_key, months=12 * NUM_YEARS)
 
     # Fetch fresh data from yfinance
-    # manager.fetch_and_save_yfinance_data(months=12)
+    # manager.fetch_and_save_yfinance_data(months=12 * NUM_YEARS)
 
     # Option 2: Use existing data and run full pipeline
     merged_df = manager.merge_market_and_macro_data()
