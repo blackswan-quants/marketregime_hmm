@@ -2,6 +2,7 @@ import logging
 import os
 
 import matplotlib.cm as cm
+import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -32,6 +33,7 @@ def plot_regime_bg(
     state_labels=None,
     label_colors=None,
     ylabel="Value",
+    dates=None,
 ):
     """Plot data series with colored regime backgrounds."""
     if state_labels is None:
@@ -39,7 +41,10 @@ def plot_regime_bg(
     if label_colors is None:
         label_colors = {}
 
-    ax.plot(data, "k", lw=1)
+    if dates is not None:
+        ax.plot(dates, data, "k", lw=1)
+    else:
+        ax.plot(data, "k", lw=1)
 
     # Generate colormap for regimes dynamically if needed
     unique_states = np.unique(Z)
@@ -57,7 +62,11 @@ def plot_regime_bg(
         s, e = changes[i], changes[i + 1]
         regime_name = state_labels.get(Z[s], f"Regime_{Z[s]}")
         color = label_colors.get(regime_name, "#95a5a6")
-        ax.axvspan(s, e, color=color, alpha=0.3, lw=0)
+
+        if dates is not None:
+            ax.axvspan(dates[s], dates[min(e, len(dates) - 1)], color=color, alpha=0.3, lw=0)
+        else:
+            ax.axvspan(s, e, color=color, alpha=0.3, lw=0)
 
     title_text = title
     if acc is not None:
@@ -65,6 +74,11 @@ def plot_regime_bg(
     ax.set_title(title_text, fontweight="bold", fontsize=10)
     ax.set_ylabel(ylabel)
     ax.grid(True, alpha=0.3)
+
+    if dates is not None:
+        ax.xaxis.set_major_locator(mdates.MonthLocator(interval=6))
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
+        plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
 
 
 # Descriptions based on PCA Loadings
@@ -238,6 +252,7 @@ def create_dashboard(
         ylabel=ts_name,
         state_labels=state_labels,
         label_colors=label_colors,
+        dates=aux_data.get("date") if aux_data else None,
     )
 
     # If we have dates, try to set them (simple approximation if plot_regime_bg plots against index)

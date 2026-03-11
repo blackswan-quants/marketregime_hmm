@@ -1,8 +1,9 @@
 import os
 
 DATA_TYPE = "Real"  # Options: "Gaussian", "Broken", "Real"
-# Assuming the parquet file is in the same directory as this config file (src/model/hmm_package)
-REAL_DATA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "hmm_model_input.parquet")
+REAL_DATA_PATH = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../../../data/processed/market_features.parquet")
+)
 NOISE_LEVEL = 0.15
 N_SAMPLES = 2000
 N_REGIMES = 3  # Default k, will be overridden by selection

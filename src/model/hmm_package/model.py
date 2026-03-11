@@ -1,6 +1,6 @@
 import logging
-from dataclasses import dataclass
-from typing import Optional, Tuple
+from dataclasses import dataclass, field
+from typing import Dict, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -20,9 +20,15 @@ class HMMConfig:
     duration_penalty: float = 10000.0
     tol: float = 1e-2
     random_state: Optional[int] = None
+    persistence_weight: float = 0.95  # Probability of staying in the same state
+    bic_penalty_multiplier: float = 1.0
+    aic_penalty_multiplier: float = 1.0
+    k_preference: Dict[int, float] = field(default_factory=dict)
 
 
-def calculate_information_criteria(model, X: np.ndarray) -> Tuple[float, float, float, float]:
+def calculate_information_criteria(
+    model, X: np.ndarray, bic_multiplier: float = 1.0, aic_multiplier: float = 1.0
+) -> Tuple[float, float, float, float]:
     """Calculate AIC and BIC for the HMM."""
     try:
         log_likelihood = model.score(X)
@@ -48,8 +54,8 @@ def calculate_information_criteria(model, X: np.ndarray) -> Tuple[float, float, 
     n_covars = cov_params.get(cov_type, cov_params["full"])
 
     k = n_startprob + n_transmat + n_means + n_covars
-    aic = 2 * k - 2 * log_likelihood
-    bic = k * np.log(n_samples) - 2 * log_likelihood
+    aic = (2 * k * aic_multiplier) - 2 * log_likelihood
+    bic = (k * np.log(n_samples) * bic_multiplier) - 2 * log_likelihood
 
     return aic, bic, k, log_likelihood
 
@@ -65,6 +71,14 @@ def _fit_single_hmm(X: np.ndarray, n_components: int, config: HMMConfig, seed_of
             tol=config.tol,
             random_state=rs,
         )
+
+        # Initialize transition matrix with strong diagonal if persistence_weight is set
+        if config.persistence_weight > 0:
+            transmat = np.full((n_components, n_components), (1 - config.persistence_weight) / (n_components - 1))
+            np.fill_diagonal(transmat, config.persistence_weight)
+            model.transmat_ = transmat
+            model.init_params = "smc"  # Initialize startprob, means, covars
+
         model.fit(X)
 
         if not model.monitor_.converged:
@@ -108,12 +122,16 @@ def select_best_model(
             logger.warning("k=%d: all fits failed", k)
             continue
 
-        aic, bic, n_params, ll = calculate_information_criteria(best_model, X_scaled)
+        aic, bic, n_params, ll = calculate_information_criteria(
+            best_model, X_scaled, config.bic_penalty_multiplier, config.aic_penalty_multiplier
+        )
         durations = _get_regime_durations(best_model.transmat_)
         min_duration = durations.min()
 
         penalty_applied = min_duration < config.min_duration_penalty_threshold
-        final_bic = bic + (config.duration_penalty if penalty_applied else 0)
+
+        bias = config.k_preference.get(k, 0.0)
+        final_bic = bic + (config.duration_penalty if penalty_applied else 0) - bias
 
         results.append(
             {
@@ -158,26 +176,36 @@ def infer_state_labels(model: hmm.GaussianHMM, feature_names: list) -> dict:
         Dictionary mapping state indices to descriptive labels
     """
     n_states = model.n_components
-    means = model.means_
+    covars = model.covars_
 
-    # Simple heuristic: label based on first feature (e.g., volatility or returns)
-    # Assumes first feature is the primary indicator
-    first_feature_means = means[:, 0]
-    sorted_indices = np.argsort(first_feature_means)
+    # Heuristic: Volatility is a better indicator of regime than returns.
+    # We use the trace of the covariance matrix as a proxy for total variance (volatility) in that state
+    state_vols = []
+    for i in range(n_states):
+        if model.covariance_type == "full":
+            state_vols.append(np.trace(covars[i]))
+        elif model.covariance_type == "diag":
+            # Diag covariance is just an array of variances
+            state_vols.append(np.sum(covars[i]))
+        else:
+            # Fallback
+            state_vols.append(np.sum(covars[i]))
 
-    # Map states to low/medium/high based on first feature
+    sorted_indices = np.argsort(state_vols)
+
+    # Map states to low/medium/high based on Volatility (Trace of Covariance)
     labels = {}
     if n_states == 2:
-        labels[sorted_indices[0]] = "Low"
-        labels[sorted_indices[1]] = "High"
+        labels[sorted_indices[0]] = "Risk-On"
+        labels[sorted_indices[1]] = "Risk-Off"
     elif n_states == 3:
-        labels[sorted_indices[0]] = "Low"
-        labels[sorted_indices[1]] = "Medium"
-        labels[sorted_indices[2]] = "High"
+        labels[sorted_indices[0]] = "Risk-On"
+        labels[sorted_indices[1]] = "Neutral"
+        labels[sorted_indices[2]] = "Risk-Off"
     else:
-        # For more states, use numeric labels
+        # For more states, use numeric labels sorted by vol
         for i, idx in enumerate(sorted_indices):
-            labels[idx] = f"Regime_{i}"
+            labels[idx] = f"Regime_Vol_{i}"
 
     return labels
 
