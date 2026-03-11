@@ -367,8 +367,8 @@ if __name__ == "__main__":
         # Example: Run PCA on all Z-scored columns
         z_cols = [c for c in df.columns if c.endswith("_z")]
         if z_cols:
-            factor_scores, explained_var, loadings = run_pca(df, n_components=0.80, columns_to_include=z_cols)
-            logger.info("PCA Explained Variance: %s", explained_var)
+            pca, factor_scores, loadings = run_pca(df, n_components=0.80, columns_to_include=z_cols)
+            logger.info("PCA Explained Variance: %s", pca.explained_variance_ratio_)
             logger.info("Factor Scores Shape: %s", factor_scores.shape)
         else:
             logger.warning("No _z columns found for PCA.")
