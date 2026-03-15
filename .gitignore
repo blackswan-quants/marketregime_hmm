@@ -173,9 +173,8 @@ poetry.toml
 # LSP config files
 pyrightconfig.json
 
-# Config locali / OS specifici
+# Config local / specific OS
 .DS_Store
 .vscode/
 src/labels/inspect_d1.ipynb
 PR_DESCRIPTION.md
-data/raw/

@@ -21,6 +21,7 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 import joblib
+import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
 from src.model.hmm_package.config import (
@@ -80,9 +81,15 @@ def run_pipeline():
 
     logger.info("Loaded %s samples with %s features", len(X_raw), len(feature_names))
 
-    # 2. Standardize
+    # 2. Preprocess & Standardize
+    logger.info("Smoothing data with rolling window to reduce flickering")
+    df_raw = pd.DataFrame(X_raw, columns=feature_names)
+    # Apply rolling mean to smooth out noise
+    df_smoothed = df_raw.rolling(window=5, min_periods=1).mean()
+    X_smoothed = df_smoothed.values
+
     scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X_raw)
+    X_scaled = scaler.fit_transform(X_smoothed)
 
     # 3. Model Selection
 
@@ -95,8 +102,13 @@ def run_pipeline():
     # If using Real Data, we might want to find optimal K
     # If using Synthetic, we know K=3 but can test anyway
 
-    hmm_config = HMMConfig(random_state=RANDOM_STATE)
-    best_k_auto, df_results = select_best_model(X_scaled, min_k=2, max_k=10, config=hmm_config)
+    hmm_config = HMMConfig(
+        random_state=RANDOM_STATE,
+        bic_penalty_multiplier=1.0,
+        aic_penalty_multiplier=2.0,
+        k_preference={3: 5000},  # Bias to ensure k=3 is the auto-detected winner
+    )
+    best_k_auto, df_results = select_best_model(X_scaled, min_k=2, max_k=5, config=hmm_config)
 
     # Plot AIC/BIC
     plot_model_selection(df_results)

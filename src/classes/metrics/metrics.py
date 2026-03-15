@@ -31,20 +31,31 @@ def load_spx_vix() -> tuple[pd.DataFrame, int]:
     if "date" in macro.columns:
         macro["date"] = pd.to_datetime(macro["date"])
         macro = macro.set_index("date")
+    elif "index" in macro.columns:  # Handle reset_index() default column name
+        macro["index"] = pd.to_datetime(macro["index"])
+        macro = macro.set_index("index")
     else:
         macro.index = pd.to_datetime(macro.index)
 
     calendar = macro.index
 
+    # SPX
     if "date" in spx.columns:
         spx["date"] = pd.to_datetime(spx["date"])
         spx = spx.set_index("date")
+    elif "index" in spx.columns:
+        spx["index"] = pd.to_datetime(spx["index"])
+        spx = spx.set_index("index")
     else:
         spx.index = pd.to_datetime(spx.index)
 
+    # VIX
     if "date" in vix.columns:
         vix["date"] = pd.to_datetime(vix["date"])
         vix = vix.set_index("date")
+    elif "index" in vix.columns:
+        vix["index"] = pd.to_datetime(vix["index"])
+        vix = vix.set_index("index")
     else:
         vix.index = pd.to_datetime(vix.index)
 
@@ -53,10 +64,14 @@ def load_spx_vix() -> tuple[pd.DataFrame, int]:
     vix = vix.reindex(calendar).ffill()
 
     # Renaming the columns
-    spx = spx[["close"]].rename(columns={"close": "spx_close"})
-    vix = vix[["close"]].rename(columns={"close": "vix_close"})
+    spx_col = "close_SPY" if "close_SPY" in spx.columns else "close"
+    vix_col = "close_VIX" if "close_VIX" in vix.columns else "close"
+
+    spx = spx[[spx_col]].rename(columns={spx_col: "spx_close"})
+    vix = vix[[vix_col]].rename(columns={vix_col: "vix_close"})
 
     df = pd.DataFrame(index=calendar)
+    df.index.name = "date"
     df["spx_close"] = spx["spx_close"]
     df["vix_close"] = vix["vix_close"]
 
@@ -171,8 +186,9 @@ def build_market_features(df: pd.DataFrame, trading_days: int) -> pd.DataFrame:
     df_["M1"] = log_return(df_["spx_close"], window=10)
     df_["M2"] = log_return(df_["spx_close"], window=42)
 
-    # V1, V2
+    # V1, V1', V2
     df_["V1"] = realized_vol(df_["R1"], 14, trading_days)
+    df_["V1'"] = np.log(realized_vol(df_["R1"], 21, trading_days))
     df_["V2"] = realized_vol(df_["R1"], 42, trading_days)
 
     # V3

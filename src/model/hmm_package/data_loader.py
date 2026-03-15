@@ -38,8 +38,25 @@ def load_real_data(filepath):
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"File not found: {filepath}")
 
-    df = pd.read_parquet(filepath)
+    if filepath.endswith(".parquet"):
+        df = pd.read_parquet(filepath)
+    else:
+        df = pd.read_csv(filepath)
+
     logger.info("Loaded data columns: %s", df.columns.tolist())
+
+    # Ensure date is sorted and handled
+    if "date" in df.columns:
+        df["date"] = pd.to_datetime(df["date"])
+        df = df.sort_values("date")
+    elif isinstance(df.index, pd.DatetimeIndex):
+        # If date is in index, move it to a column
+        df = df.copy()
+        if df.index.name == "date":
+            df.index.name = "date_index"
+        df["date"] = df.index
+        df["date"] = pd.to_datetime(df["date"])
+        df = df.sort_values("date")
 
     features = []
     feature_names = []
@@ -54,27 +71,39 @@ def load_real_data(filepath):
             features.append(df[col].values)
             feature_names.append(col)
     else:
-        # Fallback to original logic
+        # Fallback to original logic - Use specific column names if they exist
+        # Log-Returns
         if "spx_close" in df.columns:
             df["log_ret"] = np.log(df["spx_close"] / df["spx_close"].shift(1))
-            df = df.dropna()
+            df = df.dropna(subset=["log_ret"])
             features.append(df["log_ret"].values)
             feature_names.append("Log-Returns")
         elif "R1" in df.columns:
+            df = df.dropna(subset=["R1"])
             features.append(df["R1"].values)
-            feature_names.append("Momentum (R1)")
+            feature_names.append("Log-Returns")  # Keep naming consistent with user expectation
 
+        # Log-Volatility
         if "V1" in df.columns:
+            df = df.dropna(subset=["V1"])
             features.append(np.log(df["V1"].values + 1e-6))
-            feature_names.append("Log-Volatility (V1)")
+            feature_names.append("Log-Volatility")
+        elif "vix_close" in df.columns:
+            df = df.dropna(subset=["vix_close"])
+            features.append(np.log(df["vix_close"].values + 1e-6))
+            feature_names.append("Log-Volatility")
 
+        # Drawdown
         if "D1" in df.columns:
+            df = df.dropna(subset=["D1"])
             features.append(df["D1"].values)
-            feature_names.append("Drawdown (D1)")
+            feature_names.append("Drawdown")
 
+        # Yield Curve
         if "M1" in df.columns:
+            df = df.dropna(subset=["M1"])
             features.append(df["M1"].values)
-            feature_names.append("Yield Curve (M1)")
+            feature_names.append("Yield Curve")
 
     if not features:
         raise ValueError(
@@ -91,39 +120,24 @@ def load_real_data(filepath):
     # Aux data (Dates, Price if available)
     aux_data = {}
     if "date" in df.columns:
-        aux_data["date"] = pd.to_datetime(df["date"]).values
-    if "spx_close" in df.columns:
-        aux_data["price"] = df["spx_close"].values
+        aux_data["date"] = df["date"].values
+
+    # Search for a price column
+    price_col = next((c for c in ["spx_close", "market_PC1", "price"] if c in df.columns), None)
+    if price_col:
+        aux_data["price"] = df[price_col].values
+    else:
+        # Fallback: cumulative sum of first feature if it looks like returns
+        aux_data["price"] = 100 * np.exp(np.cumsum(X[:, 0] / 100.0))
 
     return X, Z_true, feature_names, aux_data
 
 
-def generate_multifeature_data(n_samples=2000, noise_level=0.0):
+def generate_multifeature_data(n_samples=2000, noise_level=0.0, random_state=42):
     """
     Generate synthetic 4D multivariate market data with realistic, OVERLAPPING distributions.
-
-    Features generated:
-    1. Log-Returns
-    2. Log-Volatility
-    3. Drawdown
-    4. Yield Curve
-
-    The generation uses a Gaussian HMM with 'sticky' transitions to simulate persistent market regimes.
-    The means and covariances are calibrated to create "Hard Mode" data where regimes are not perfectly separable,
-    mimicking real-world ambiguity (e.g., Bear market volatility overlapping with Bull market corrections).
-
-    Args:
-        n_samples (int): Number of time steps to generate.
-        noise_level (float): Factor of additional Gaussian noise added to observations (0.0 to 1.0).
-
-    Returns:
-        tuple: (X, Z_true, feature_names, aux_data)
-            - X (np.ndarray): Observation matrix.
-            - Z_true (np.ndarray): True hidden states.
-            - feature_names (list): Names of features.
-            - aux_data (dict): Contains 'date' and reconstructed 'price'.
     """
-    model = hmm.GaussianHMM(n_components=3, covariance_type="full")
+    model = hmm.GaussianHMM(n_components=3, covariance_type="full", random_state=random_state)
 
     model.startprob_ = np.array([0.5, 0.2, 0.3])
 

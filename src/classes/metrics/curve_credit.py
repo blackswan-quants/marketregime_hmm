@@ -74,15 +74,10 @@ def compute_curve_slope(dgs10: pd.DataFrame, dgs2: pd.DataFrame) -> pd.DataFrame
             - date
             - curve_10y_2y (difference DGS10 - DGS2)
     """
-    merged = dgs10.merge(
-        dgs2,
-        on="date",
-        how="inner",
-        suffixes=("_10y", "_2y"),
-    )
+    merged = dgs10.merge(dgs2, on="date", how="inner")
 
     features = merged[["date"]].copy()
-    features["curve_10y_2y"] = merged["value_10y"] - merged["value_2y"]
+    features["curve_10y_2y"] = merged["dgs10"] - merged["dgs2"]
     return features
 
 
@@ -120,15 +115,15 @@ def build_curve_credit_features() -> pd.DataFrame:
     dgs10_path, dgs2_path, credit_spread_path, _, _ = build_paths()
 
     logging.info("Loading DGS10, DGS2 and credit spread series.")
-    dgs10 = load_series(dgs10_path)
-    dgs2 = load_series(dgs2_path)
-    credit_spread = load_series(credit_spread_path)
+    dgs10 = load_series(dgs10_path, value_col="dgs10")
+    dgs2 = load_series(dgs2_path, value_col="dgs2")
+    credit_spread = load_series(credit_spread_path, value_col="credit_spread_baa_aaa")
 
     logging.info("Computing 10y-2y curve slope.")
     curve = compute_curve_slope(dgs10, dgs2).sort_values("date")
 
     logging.info("Preparing credit spread series.")
-    credit = credit_spread.sort_values("date")[["date", "value"]].rename(columns={"value": "credit_spread_baa_aaa"})
+    credit = credit_spread.sort_values("date")[["date", "credit_spread_baa_aaa"]]
 
     logging.info("Merging curve slope with credit spreads using merge_asof.")
     features = pd.merge_asof(

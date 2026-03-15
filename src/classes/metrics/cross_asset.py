@@ -92,6 +92,10 @@ def load_series(
         # Explicit 'date' column present.
         df[date_col] = pd.to_datetime(df[date_col])
         df = df.sort_values(date_col).set_index(date_col)
+    elif "index" in df.columns:
+        # Handle default reset_index() column from data_manager.py
+        df["index"] = pd.to_datetime(df["index"])
+        df = df.sort_values("index").set_index("index")
     else:
         # No explicit 'date' column: assume index carries the dates.
         df.index = pd.to_datetime(df.index)
@@ -99,7 +103,17 @@ def load_series(
 
     # --- Infer value column if not provided ---
     if value_col is None:
-        candidates = ["close", "Close", "adj_close", "Adj Close", "Open", "open"]
+        candidates = [
+            "close",
+            "Close",
+            "adj_close",
+            "Adj Close",
+            "Open",
+            "open",
+            "close_SPY",
+            "close_TLT",
+            "close_MOVE",
+        ]
         found = [c for c in candidates if c in df.columns]
         if not found:
             raise ValueError(f"Could not infer value column for {filename}. " f"Available columns: {list(df.columns)}")
@@ -318,7 +332,9 @@ def build_cross_asset_features(
         "M_CH_MOVE_d21",
     ]
 
-    return df[feature_cols].copy()
+    out_df = df[feature_cols].copy()
+    out_df.index.name = "date"
+    return out_df
 
 
 def save_cross_asset_features(
