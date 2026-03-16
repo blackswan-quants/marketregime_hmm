@@ -11,6 +11,8 @@ requires-python = ">=3.12"
 
 # === Core libraries ===
 dependencies = [
+    "dtaidistance>=2.3.0",
+    "fastdtw>=0.3.4",
     "hmmlearn>=0.3.3",
     "ipykernel>=7.0.1",
     "matplotlib>=3.10.7",

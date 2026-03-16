@@ -1,0 +1,3 @@
+[submodule "helpermodules"]
+	path = helpermodules
+	url = https://github.com/blackswan-quants/helpermodules.git
