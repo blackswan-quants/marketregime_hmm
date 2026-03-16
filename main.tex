@@ -1,0 +1,367 @@
+\documentclass[a4paper,fleqn]{cas-sc}
+
+% --- Pacchetti ---
+\usepackage[numbers]{natbib} % Modificato in 'numbers' per avere le citazioni [1], [2]
+\usepackage{graphicx}
+\usepackage{booktabs} 
+\usepackage{hyperref} 
+\usepackage{amsmath}  
+\usepackage[T1]{fontenc}
+\usepackage{svg}   
+
+% Nota: ho rimosso \usepackage{geometry} perché il template cas-dc 
+% ha i suoi margini preimpostati e forzarli causa bug di impaginazione.
+
+% --- Configurazione Link ---
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Market Regime Detector - Data Report},
+}
+
+\begin{document}
+
+% ===================================================================
+% FRONTMATTER (Rigidissimo in cas-dc: Abstract va PRIMA di maketitle)
+% ===================================================================
+
+\title[mode = title]{Market Regime Detector: Data Report}
+
+\shortauthors{Team PMDS}
+
+% Sintassi obbligatoria per gli autori in cas-dc
+\author[1]{Lorenzo}
+\author[1]{Jan}
+\author[1]{Milica}
+\author[1]{Mattia}
+\author[1]{Matteo}
+
+\affiliation[1]{organization={Team PMDS}}
+
+\begin{abstract}
+Financial markets exhibit distinct regimes characterized by varying levels of volatility, momentum, and risk appetite. Identifying these regimes is crucial for robust quantitative trading strategies, particularly those based on intraday momentum. In this report, we present a comprehensive pipeline for market regime detection utilizing a multi-start Gaussian Hidden Markov Model (HMM) fitted on macro-financial indicators. We outline our data collection and cleaning process, dimensionality reduction via Principal Component Analysis (PCA), and the HMM training framework incorporating a penalized Bayesian Information Criterion (BIC) for model selection. Furthermore, we contrast the HMM approach—which models temporal state persistence—with a Dynamic Time Warping (DTW) hierarchical clustering algorithm. Our results demonstrate that incorporating temporal awareness significantly improves the identification of structural volatility regimes over static clustering methods, yielding actionable insights for dynamic portfolio risk management.
+\end{abstract}
+
+% IL MAKETITLE DEVE STARE QUI
+\maketitle
+
+% ===================================================================
+\section{Introduction}
+% ===================================================================
+
+\subsection{Motivation and Context}
+Implementing robust trading strategies, such as an intraday momentum strategy for the S\&P 500 (SPY), requires the ability to identify distinct market regimes (e.g., Bull, Bear, or Sideways markets). By detecting the prevailing regime, quantitative models can dynamically adjust trading parameters—such as sizing, stop-losses, and entry thresholds—to match current market conditions.
+
+A commonly used statistical framework for identifying such regimes is the Hidden Markov Model (HMM), which models financial returns as emissions from latent states governed by a Markov process. In empirical finance, Gaussian HMMs have been widely applied to detect persistent low-volatility and high-volatility regimes in major equity indices such as the S\&P 500. These models frequently associate high-volatility states with periods of market stress, including events like the Global Financial Crisis and the COVID-19 market crash. Their ability to capture regime persistence while remaining relatively interpretable makes HMMs a practical tool for volatility regime detection and for informing adaptive trading and risk-management frameworks.
+
+\subsection{Problem Statement}
+Financial markets are intrinsically noisy, and standard indicators often suffer from high multicollinearity and a lack of temporal awareness. Conventional models that rely solely on static thresholds or simple heuristics tend to overfit to momentary noise, generating false signals during transient market shocks. There is a critical need for a probabilistic model capable of capturing persistent regimes across price action, volatility, macroeconomic shifts, and credit indicators, while effectively filtering out isolated noise.
+
+\subsection{Project Scope and Methodology}
+To address these challenges, we have developed a data-driven regime detection pipeline. Our methodology involves gathering broad market and macroeconomic data, cleaning and standardizing the dataset, and performing dimensionality reduction via Principal Component Analysis (PCA) to orthogonalize the features. We then fit a multi-start Gaussian Hidden Markov Model (HMM) on these principal components. The optimal number of hidden states is determined using a penalized Bayesian Information Criterion (BIC) that penalizes models with unrealistically short-lived regimes. To benchmark and contextualize our findings, we also explore a Hierarchical Clustering algorithm incorporating Dynamic Time Warping (DTW) distance over rolling windows. This report details the data pipeline, feature engineering, model selection, and provides a comparative analysis of the clustering and HMM methodologies.
+
+% ===================================================================
+\section{Literature review}
+% ===================================================================
+
+Hidden Markov Models (HMMs) are widely employed to detect latent volatility regimes in financial time series. In the standard Gaussian specification, log-returns are modeled as state-dependent Gaussian emissions governed by a finite-state Markov chain, with parameters estimated via the Baum--Welch Expectation-Maximization algorithm \cite{Rabiner1989, Holzmann2016}. Most studies adopt two or three regimes, balancing interpretability and parsimony, and rely on information criteria or out-of-sample performance to determine the appropriate model order \cite{Chen2020}.
+
+Empirical work consistently finds that Gaussian HMMs identify persistent low-volatility ``bull'' regimes and episodic high-volatility ``crisis'' regimes. Applications to the S\&P~500, CSI~300, EuroStoxx, and major futures typically show that the highest-volatility state coincides with well-known market drawdowns such as the 2008 financial crisis or the 2020 COVID shock \cite{Wang2017, Duriez2025, Liu2017}. Regime-conditioned trading strategies often display improved drawdown control and modestly enhanced Sharpe ratios relative to buy-and-hold or simple technical-rule benchmarks \cite{Wang2020, Duriez2025}. Studies comparing HMMs with moving-average filters or unsupervised clustering generally conclude that the Markovian persistence embedded in HMMs produces more stable and economically interpretable regime assignments \cite{Ansari2025, LSEG2023}.
+
+Despite their practicality, Gaussian HMMs are subject to well-known limitations. The Gaussian assumption understates fat tails, and the time-homogeneous transition matrix restricts the model's ability to capture structural breaks or long-memory volatility \cite{Ansari2025}. Regime estimates are also sensitive to initialization and to the inclusion or exclusion of outliers. Feature sets frequently rely on raw or log-returns, and empirical evidence on multivariate or indicator-augmented HMMs is mixed, with improvements depending heavily on sample period and preprocessing \cite{Chen2020, QuantConnect2023}.
+
+Recent research highlights the importance of rigorous out-of-sample validation. Rolling or expanding-window HMMs generally outperform full-sample fits by accommodating slow parameter drift, yet challenges remain regarding real-time regime detection and the prevention of look-ahead biases in performance evaluation \cite{Duriez2025, Ansari2025}. Extensions incorporating heavy-tailed emissions, time-varying transitions, or higher-dimensional feature sets represent active areas for further development \cite{Wang2020, LSEG2023}.
+
+Overall, the literature establishes Gaussian HMMs as a robust and interpretable framework for volatility regime identification. They deliver consistent qualitative insights and offer incremental improvements in risk-adjusted returns, though their effectiveness depends on careful model specification, data handling, and out-of-sample validation procedures \cite{Duriez2025, Wang2020}.
+
+% ===================================================================
+\section{Data Collection Pipeline}
+% ===================================================================
+Our unified \texttt{DataManager} component orchestrates the retrieval and alignment of all necessary datasets.
+
+\subsection{Data Retrieval}
+We acquire financial and macroeconomic data from established sources:
+\begin{itemize}
+    \item \textbf{Market Data}: Intraday and daily data for the S\&P 500 ETF (SPY), the VIX volatility index, the MOVE bond volatility index, and the long-term Treasury ETF (TLT) are fetched via Yahoo Finance.
+    \item \textbf{Macroeconomic Data}: Interest rates and credit metrics, including the 10-Year and 2-Year Treasury yields (\texttt{DGS10}, \texttt{DGS2}) and Corporate Bond yields (\texttt{AAA}, \texttt{BAA}), are retrieved via the Federal Reserve Economic Data (FRED) API.
+\end{itemize}
+
+\subsection{Cleaning and Merging}
+Due to the disparate sampling frequencies and holiday schedules across equity and bond markets, rigorous data cleaning is applied. The pipeline forward-fills missing values to address market closures, verifies business-day continuity, and removes spurious anomalies. Intraday equity data is aggregated into standard daily OHLCV formats. Finally, all datasets are merged via an "as-of" join strategy, aligning them strictly to a common daily trading calendar to form the master dataset.
+
+\subsection{Feature Computation and Dimensionality Reduction}
+From the raw clean data, we compute several derived features, including the Credit Spread (BAA - AAA), the Yield Curve slope (10Y - 2Y Treasury yields), daily and multi-day returns, moving momentum metrics, realized volatility windows, and maximum drawdowns.
+
+To address multicollinearity, which is prevalent among financial indicators, we compute Variance Inflation Factors (VIF). Instead of iteratively dropping collinear variables and potentially losing information, we group features into semantic categories (\texttt{market}, \texttt{credit}, and \texttt{cross\_asset}) and apply Principal Component Analysis (PCA) independently to each. We retain a sufficient number of principal components to explain strictly 80\% of the variance within each category. These resulting orthogonal components (e.g., \texttt{market\_PC1}, \texttt{cross\_asset\_PC1}) constitute the final feature set passed to our regime detection models.
+
+% ===================================================================
+\section{Validation Summary}
+% ===================================================================
+
+This section documents the validation process implemented by Team 1, referencing the integrity report \cite{team1_report}.
+
+\subsection{Validation Process}
+Prior to analysis, a series of preprocessing steps was performed to ensure data consistency and temporal alignment \cite{team1_script}. First, the corporate bond variables (\texttt{AAA}, \texttt{BAA}, and the \texttt{credit\_spread\_baa\_aaa}) were rescaled from percentage units to decimal form. Second, missing observations in the Treasury yield series (\texttt{DGS2}, \texttt{DGS10}) and the \texttt{yield\_curve\_10y\_2y\_ spread} were imputed using a forward-filling technique, in addition to converting their values from percentage units to decimal form.
+
+Similarly, the \texttt{MOVE} and \texttt{TLT} datasets underwent a limited preprocessing protocol. Specifically, the forward-filling technique was exclusively applied to address missing dates and ensure time-series continuity; no further transformations or rescaling were performed on these variables.
+
+The \texttt{SPY} dataset underwent daily aggregation to extract the minimum, maximum, open, and close prices. Gaps in trading days were identified and forward-filled; the specific nature of these missing dates is discussed in Section \ref{sec:integrity_analysis}. A similar imputation method was applied to the \texttt{VIX} index without aggregation. Finally, to address the temporal discrepancy between the two-year span of the \texttt{SPY} data and the one-year span of the remaining variables, the datasets were synchronized, restricting the final sample to the most recent year of intersecting data.
+
+\subsection{Integrity Report Analysis} \label{sec:integrity_analysis}
+Temporal gaps in the datasets, primarily attributable to market closures and U.S. statutory holidays, were addressed by assuming a continuous time series across all business days. Consequently, missing values for these non-trading dates were imputed using the forward-filling technique \cite{team1_validation}.
+
+Furthermore, a data inconsistency was identified and resolved regarding the observation on January 9, 2025. While the \texttt{SPY} and \texttt{VIX} datasets correctly reflected a market closure, the \texttt{yield\_curve\_10y\_2y\_spread} series contained a spurious non-null value. To ensure consistency across all variables, this anomalous data point was removed and substituted using the forward-filling method.
+
+\begin{table}[htbp]
+  \caption{Summary of Missing Dates}
+  \label{tab:integrity_report}
+  \centering
+  \begin{tabular}{llc}
+    \toprule
+    \textbf{Date} & \textbf{Affected Dataset} & \\
+    \midrule
+    2024-11-11 & SPY, VIX, Curve 10y\_2y  & \\
+    2024-11-28 & SPY, VIX, Curve 10y\_2y & \\
+    2024-12-25 & SPY, VIX, Curve 10y\_2y & \\
+    2025-01-01 & SPY, VIX, Curve 10y\_2y & \\
+    2025-01-09 & SPY, VIX  & * \\
+    ... & ... & \\
+    \bottomrule
+  \end{tabular}
+  \par\bigskip
+  \footnotesize{\textit{* Date where there is the dirty data}}
+\end{table}
+
+% ===================================================================
+\section{Engineered Features}
+% ===================================================================
+
+This section introduces a new set of macro–financial features that will be used downstream in the Market Regime Detector.
+
+\subsection{Inputs and Output}
+The feature construction is implemented in \texttt{src/classes/metrics/curve\_credit.py} and relies on the following cleaned inputs:
+\begin{itemize}
+    \item \texttt{data/cleaned/dgs10.csv}: 10-year Treasury constant maturity yield (\texttt{DGS10}).
+    \item \texttt{data/cleaned/dgs2.csv}: 2-year Treasury constant maturity yield (\texttt{DGS2}).
+    \item \texttt{data/cleaned/credit\_spread.csv}: BAA--AAA corporate bond spread.
+\end{itemize}
+
+The script produces a daily feature panel saved in:
+\begin{itemize}
+    \item \texttt{data/processed/curve\_credit\_features.parquet}
+    \item \texttt{data/processed/curve\_credit\_features.csv}
+\end{itemize}
+
+\subsection{Yield Curve Slope Feature}
+The first feature captures the slope of the US Treasury yield curve between 10-year and 2-year maturities. Starting from the cleaned series \texttt{DGS10} and \texttt{DGS2}, the script:
+\begin{enumerate}
+    \item Parses and sorts each time series by the \texttt{date} column.
+    \item Merges the two series on common business dates.
+    \item Computes the difference in decimal units:
+    \[
+        \texttt{curve\_10y\_2y}_t = \texttt{DGS10}_t - \texttt{DGS2}_t.
+    \]
+\end{enumerate}
+
+\subsection{Credit Spread Feature}
+The second feature encodes corporate credit risk premia via the BAA--AAA spread. From \texttt{credit\_spread.csv}, the script:
+\begin{enumerate}
+    \item Sorts the observations by \texttt{date}.
+    \item Renames the value column to \texttt{credit\_spread\_baa\_aaa}.
+    \item Forward-fills missing values along the credit spread time index.
+\end{enumerate}
+
+\subsection{Macro Fill Policy and Daily Alignment}
+Because the yield curve features are available at (near) daily frequency, whereas credit spreads may be reported at lower frequency, the two series are aligned using a macro fill policy implemented via an as-of merge using \texttt{pandas.merge\_asof} with \texttt{direction="backward"}.
+
+\subsection{Market-Based Features (SPX \& VIX)}
+This section describes the market features used in the regime detector.
+
+\begin{description}
+    \item[R1: Daily Return (1d)]
+    \[ r_{t,1d} = \ln(P_t) - \ln(P_{t-1}) \]
+    
+    \item[R2: 5-Day Return]
+    \[ r_{t,5d} = \ln(P_t) - \ln(P_{t-5}) \]
+    
+    \item[M1: Momentum (10d)]
+    \[ mom_{10} = \ln(P_t) - \ln(P_{t-10}) \]
+    
+    \item[M2: Momentum (42d)]
+    \[ mom_{42} = \ln(P_t) - \ln(P_{t-42}) \]
+    
+    \item[V1: Realized Volatility (14d)]
+    \[ \sigma_{14} = \sqrt{ \frac{\text{trading days}}{14} \sum_{i=1}^{14} r_{t-i,1d}^{2} } \]
+    
+    \item[V2: Realized Volatility (42d)]
+    \[ \sigma_{42} = \sqrt{ \frac{\text{trading days}}{42} \sum_{i=1}^{42} r_{t-i,1d}^{2} } \]
+    
+    \item[V3: EWMA Volatility]
+    \[ \sigma_{\text{EWMA}} = \sqrt{ \text{trading days} \cdot \mathrm{EWMA}(r_{1d}^2) } \]
+    
+    \item[S1: VIX / Realized Volatility]
+    \[ \mathrm{VR} = \frac{\mathrm{VIX}}{\sigma_{\text{EWMA}}} \]
+    
+    \item[D1: Max Drawdown (42d)]
+    Rolling 42-day peak-to-trough maximum loss.
+\end{description}
+
+% ===================================================================
+\section{Preliminary Regime Labels and Diagnostics}
+% ===================================================================
+
+\subsection{Standardization}
+Each feature is standardized to its $z$-score. The distribution of these standardized features is confirmed via density visualizations.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{images/feature_distributions.png}
+  \caption{Visualization of standardized feature distributions, confirming comparable scaling across the input dataset.}
+  \label{fig:feat_dist}
+\end{figure}
+
+\subsection{Parameter Distribution and Covariance}
+The covariance matrix captures linear relationships between features. High covariance values indicate strong relationships, which are prevalent among financial time series and necessitate the use of PCA downstream.
+
+% Immagine Larga (ocupa 2 colonne)
+\begin{figure*}[htbp]
+  \centering
+  \includegraphics[width=0.85\textwidth]{images/corr_heatmap.png}
+  \caption{Covariance heatmap of standardized features. Highly correlated blocks (e.g. within Volatility metrics) are evident.}
+  \label{fig:corr}
+\end{figure*}
+
+\subsection{Preliminary Regime Labeling (P6)}
+The provisional labels are saved to \texttt{data/processed/labels\_prelim.csv} and act as a baseline heuristic benchmark before fitting the probabilistic models.
+
+\subsubsection{Volatility Buckets (3 States)}
+The volatility regime is defined by the \textbf{tertiles} of the EWMA volatility (halflife 14-20).
+\begin{center}
+\begin{tabular}{lr}
+    \toprule
+    \textbf{State} & \textbf{Observations} \\
+    \midrule
+    \texttt{High\_Vol} & 62 \\
+    \texttt{Mid\_Vol} & 60 \\
+    \texttt{Low\_Vol} & 61 \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{Risk Regimes (3 States)}
+\begin{itemize}
+    \item \textbf{Risk-On:} $\text{mom10}^{SPX} > 0 \land \frac{\text{VIX}}{\sigma_{\text{EWMA}}} < 1.1$
+    \item \textbf{Risk-Off:} $\text{mom}_{42}^{SPX} < 0 \lor \text{curve\_10y\_2y} < 0 \lor \Delta \text{credit}_{21} > 0$
+    \item \textbf{Neutral:} All remaining days.
+\end{itemize}
+
+\subsection{Sanity Check and HMM Benchmark}
+A crucial step involves validating the economic consistency of the labels. The sanity check confirms the fundamental intuition, as displayed in the conditional statistics in Figure \ref{fig:regime_stats}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{regime_stats.png}
+    \caption{Conditional Statistics of Returns and Volatility per Risk Regime. Note the significantly higher volatility in Risk-Off (Red).}
+    \label{fig:regime_stats}
+\end{figure}
+
+Specifically, we observe the following regime dynamics:
+\begin{itemize}
+     \item \textbf{Volatility:} The \texttt{Risk-Off} regime has a significantly higher annualized volatility of 82.7\% compared to \texttt{Risk-On} (63.7\%) and \texttt{Neutral} (33.8\%).
+    \item \textbf{Returns:} All regimes show negative mean daily returns for the sample period.
+\end{itemize}
+
+Figure \ref{fig:regime_timeline} projects these heuristic labels back onto the timeline of the index, providing a visual baseline to compare against subsequent HMM decodings.
+
+% Immagine Larga
+\begin{figure*}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{regime_timeline.png}
+    \caption{SPX Price evolution with heuristic Market Regime background colors (Red = Risk-Off, Green = Risk-On).}
+    \label{fig:regime_timeline}
+\end{figure*}
+
+% ===================================================================
+\section{Model Pipeline}
+% ===================================================================
+
+The workflow from raw data to regime identification follows a systematic pipeline: 
+\textbf{Data $\rightarrow$ PCA Features $\rightarrow$ HMM Training $\rightarrow$ Clustering Visualization $\rightarrow$ Interpretation}.
+
+\subsection{HMM Training and Selection}
+The processed, orthogonalized PCA features are fed into a multi-start Gaussian Hidden Markov Model (HMM) con diagonal covariance, implemented via \texttt{hmmlearn}. Because HMM optimization is highly non-convex and sensitive to initialization, the pipeline employs a multi-start procedure, training dozens of models with different random seeds and retaining the one that maximizes the log-likelihood.
+
+To determine the optimal number of hidden regimes ($k$), we employ a custom penalized Bayesian Information Criterion (BIC). Standard BIC often overestimates $k$ in financial time series by isolating transient outliers into separate states. Our penalized BIC introduces a severe complexity penalty if the expected duration of any inferred state falls below a minimum threshold (e.g., 5 days). This forces the model to consolidate noisy state-switching and return a structurally sound, persistent set of regimes.
+
+\subsection{Clustering Visualization and Interpretation}
+Once the optimal HMM is selected, we perform inference via the Viterbi algorithm to decode the most likely historical state sequence. To interpret these states, we visualize the inferred labels within the 3D PCA feature space. This pseudo-clustering visualization illustrates how regimes dynamically occupy distinct, though sometimes overlapping, regions of the multidimensional market space.
+
+Semantic interpretation is strictly data-driven: labels (e.g., "Bull", "Bear", "Sideways" or "Low Volatility", "High Volatility") are automatically assigned by sorting the Gaussian means across the primary PCA axis, which typically explains the bulk of market variance (e.g., volatility or directional return).
+
+% ===================================================================
+\section{HMM vs. Clustering}
+% ===================================================================
+
+\subsection{Static vs. Temporal Clustering}
+Classical distance-based clustering algorithms, such as K-Means, operate purely in the spatial dimension. They group observations that are near each other in the PCA feature space but explicitly ignore the arrow of time. In volatile financial markets, this often leads to "salt-and-pepper" classification, where the label rapidly switches back and forth between regimes on a daily basis due to natural noise. 
+
+To combat this, our alternative approach segments the time series into rolling windows (e.g., 21 days) and computes the Dynamic Time Warping (DTW) distance between these multidimensional windows. Hierarchical clustering is then applied to the DTW distance matrix. 
+
+% Immagine Larga inserita nel testo contestuale
+\begin{figure*}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{dtw_dendrogram_k3.png}
+    \caption{Hierarchical DTW Clustering Dendrogram (k=3 regimes), establishing distances between rolling windows.}
+    \label{fig:dtw_dendrogram}
+\end{figure*}
+
+By operating on rolling sequences rather than individual days, the DTW approach injects temporal awareness into the clustering process, successfully grouping periods with similar structural paths. Figure \ref{fig:dtw_timeline} illustrates the resulting regime classifications on the S\&P 500 price series.
+
+% Immagine Larga inserita nel testo contestuale
+\begin{figure*}[htbp]
+    \centering
+    \includesvg[width=0.9\textwidth]{dtw_regime_timeline}
+    \caption{SPX Price evolution with DTW Regime Clusters, showcasing multi-day temporal persistence.}
+    \label{fig:dtw_timeline}
+\end{figure*}
+
+\subsection{The Benefit of Markovian Persistence}
+While DTW clustering represents an improvement over static K-Means, the Hidden Markov Model provides a more elegant probabilistic framework for capturing volatility clustering. Financial volatility natively exhibits strong auto-correlation—high volatility today implies high volatility tomorrow. 
+
+An HMM natively captures this temporal persistence through its transition probability matrix. The diagonal elements of this matrix define the "stickiness" of a regime. Coupled with our duration-penalized BIC during model selection, the HMM naturally filters out isolated market shocks that standard spatial clustering would misclassify as an entire regime shift. Ultimately, the Markovian framework creates clean, persistent boundaries between high-volatility "Risk-Off" regimes and low-volatility sustained "Bull" markets, delivering highly reliable and actionable signals for dynamic strategy allocation.
+
+% ===================================================================
+\appendix
+\section{Appendix: Project Structure}
+% ===================================================================
+
+\subsection{Folder Structure}
+\begin{verbatim}
+/data
+  /raw
+  /processed
+    market_macro_merged.parquet
+/reports
+  integrity_report.csv
+/src
+  fetch_data.py
+  clean_data.py
+  validate_integrity.py
+\end{verbatim}
+
+\subsection{Script References}
+\begin{itemize}
+    \item \texttt{fetch\_data.py}: Script for retrieving API data.
+    \item \texttt{clean\_data.py}: Pipeline for data sanitization.
+    \item \texttt{validate\_integrity.py}: Sanity checks execution.
+\end{itemize}
+
+% ===================================================================
+% BIBLIOGRAFIA (Collegata al file references.bib)
+% ===================================================================
+\bibliographystyle{elsarticle-num} % Stile numerico nativo per cas-dc
+\bibliography{references} 
+
+\end{document}

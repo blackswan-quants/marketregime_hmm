@@ -1,0 +1,69 @@
+BSQ & PMDSHMM Regime DetectionSprint Plan
+This sprint outlines the tasks required to complete project sprint. The dataset will be updated,
+the Gaussian HMM will be limited to statistically appropriate features (R1, R2, log-transformed
+V1), the DTW Hierarchical clustering will be computed, and all the conclusions and compar-
+isons will be drawn from the results and written onto the paper. Each task includes explicit
+deliverables. For any doubts, refer to the discord.
+(1)Data Acquisition and Feature Engineering
+(a) Retrieve 3 years of daily (approx. 800 days) SP500 data (adjusted close). Verify
+completeness and consistency of timestamps.
+(b) Clean the dataset rigorously.
+(c) Construct the following Gaussian-compatible features:
+•R1:daily log returns, ln(P t)−ln(P t−1)
+•R2:5-day log returns, ln(P t)−ln(P t−5)
+•V1:14-day realized volatility (annualized), log-transformedV1 ′ = log(V1)
+(d) Standardize all features (mean 0, standard deviation 1). Verify distributions visually
+and statistically.
+(e) Implement Gaussian HMM:
+•Fit HMM with 2–4 states.
+•Extract hidden state sequence, state means, and variances.
+•Validate that the model captures coherent volatility regimes.
+(2)Regime Detection via Hierarchical DTW Clustering
+(a) Segment each feature into rolling windows of 21 trading days. This assumes (to be
+explicitly documented in the paper) that typical regimes span approximately this
+duration.
+(b) Construct a multivariate array of shape (n windows, window length, n f eatures),
+where each window contains all selected Gaussian features.
+Tip:Use theclustering class.pysubmodule fromhelpermodulesin BSQ’s
+github page. It provides pre-built functions for windowing, multivariate DTW
+distance computation, and hierarchical clustering.
+(c) Compute the multivariate DTW distance matrix between all windows.
+(d) Apply hierarchical clustering. Plot dendrograms and cut the tree to define 2–4
+clusters, each representing a distinct regime.
+(e) Map cluster labels back to the original timeline and overlay them on SP500 price
+charts. Validate visually and verify consistency with known market behavior.
+(3)Financial & Statistical Analysis and Interpretation of HMM vs Clustering
+Results
+(a) Compare HMM state sequences with DTW clusters:
+•Overlay regimes on SP500 price charts.
+•Compute feature statistics per regime (mean, volatility, drawdown).
+(b) Provide financial interpretation:
+•Bull regime: positive returns, low volatility.
+•Bear regime: negative returns, high volatility.
+•Confirm if clustering and HMM regimes align.
+(4)Cross-Feature Regime Validation
+(a) Compare identified regimes with additional dataset features (cross-asset, curve,
+credit indicators).
+(b) Confirm internal consistency:
+•Bull regime: all related features coherent with upward trends.
+•Bear regime: all related features coherent with risk-off behavior.
+(c) Document discrepancies and highlight potential causes.
+(5)Notebook Consolidation and Execution
+(a) Produce two notebooks:
+•HMM analysis notebook: calls pre-existing functions, fits HMM, plots regimes.
+•DTW clustering notebook: calls pre-existing functions, computes DTW dis-
+tances, performs hierarchical clustering, plots regimes.
+(b) Include clear markdown explanations for each step, describing intent and method-
+ology.
+(c) Ensure repository organization.
+(6)Overleaf Report Development
+(a) Update or write the following sections:
+•Introduction: articulate the motivation, context, and problem statement.
+•Abstract: concise summary of methods, key results, and financial implications.
+•Model pipeline: diagram and explanation of full workflow (data→features
+→HMM→clustering→interpretation).
+•Data collection pipeline: updated detailed description of data retrieval and
+feature computation.
+(b) Ensure all figures are correctly imported and rendered.
+(c) Provide interpretation and discussion of HMM vs clustering, emphasizing insights
+relevant to volatility regimes.
