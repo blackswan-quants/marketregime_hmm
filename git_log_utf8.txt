@@ -1,0 +1,459 @@
+commit 744d5ee46f5c695eed8744dbe31cb5aa42064546
+Merge: 2bdefa9 d088731
+Author: loren <lorenzopirozzi0@gmail.com>
+Date:   Mon Mar 16 15:52:04 2026 +0100
+
+    Merge branch 'overleaf' of https://github.com/blackswan-quants/marketregime_hmm into overleaf
+
+commit 2bdefa9bb37aaa1fc5e2056d3e1b52981aac683c
+Author: Matteo Zappa <matteo.zappa23@gmail.com>
+Date:   Sun Mar 15 14:29:19 2026 +0100
+
+    Fix data fetching and standardize features (#23)
+    
+    * Fix: Fetching more data
+    
+    * Fix: Fixed features and standardized them (also with verification)
+    
+    * Fix: Fixed model
+    
+    * Bug
+
+M	.gitignore
+M	data/cleaned/credit_spread.csv
+M	data/cleaned/credit_spread.parquet
+M	data/cleaned/dgs10.csv
+M	data/cleaned/dgs10.parquet
+M	data/cleaned/dgs2.csv
+M	data/cleaned/dgs2.parquet
+M	data/cleaned/market_macro_merged.csv
+M	data/cleaned/market_macro_merged.parquet
+M	data/cleaned/move.csv
+M	data/cleaned/move.parquet
+M	data/cleaned/spx.csv
+M	data/cleaned/spx.parquet
+M	data/cleaned/tlt.csv
+M	data/cleaned/tlt.parquet
+M	data/cleaned/vix.csv
+M	data/cleaned/vix.parquet
+M	data/cleaned/yield_curve_spread.csv
+M	data/cleaned/yield_curve_spread.parquet
+M	data/processed/cross_asset_features.parquet
+M	data/processed/curve_credit_features.csv
+M	data/processed/curve_credit_features.parquet
+M	data/processed/distribution/distribution_stats.csv
+M	data/processed/distribution/vif_stats.csv
+M	data/processed/features_dataset.parquet
+M	data/processed/hmm_input/hmm_model_input.csv
+M	data/processed/hmm_input/hmm_model_input.parquet
+M	data/processed/market_features.parquet
+M	data/raw/AAA.csv
+M	data/raw/BAA.csv
+M	data/raw/DGS10.csv
+M	data/raw/DGS2.csv
+M	data/raw/MOVE.csv
+A	data/raw/SPY.csv
+D	data/raw/SPY_1min_20231027_20251027.csv
+M	data/raw/TLT.csv
+D	data/raw/^VIX_1day_20231027_20251027.csv
+M	data/raw/credit_spread_baa_aaa.csv
+A	data/raw/vix_5yr_full.csv
+M	data/raw/yield_curve_10y_2y_spread.csv
+D	data/reports/distribution_stats_copy_for_report.csv
+M	data/reports/feature_loss_report.json
+M	data/reports/figures/corr_heatmap.png
+M	data/reports/figures/feature_distributions.png
+M	data/reports/financial_hypothesis_cross_asset.csv
+M	data/reports/financial_hypothesis_curve_spreads.csv
+M	data/reports/financial_hypothesis_returns.csv
+M	data/reports/financial_hypothesis_volatility.csv
+M	data/reports/integrity_report.csv
+M	data/reports/scree/credit_scree.png
+M	data/reports/scree/cross_asset_scree.png
+M	data/reports/scree/market_scree.png
+M	src/classes/data/data_manager.py
+M	src/classes/metrics/cross_asset.py
+M	src/classes/metrics/curve_credit.py
+M	src/classes/metrics/metrics.py
+M	src/classes/metrics/preprocessing.py
+D	src/data/raw/AAA.csv
+D	src/data/raw/BAA.csv
+D	src/data/raw/DGS10.csv
+D	src/data/raw/DGS2.csv
+D	src/data/raw/credit_spread_baa_aaa.csv
+D	src/data/raw/test_data.csv
+D	src/data/raw/yield_curve_10y_2y_spread.csv
+M	src/model/hmm_package/config.py
+M	src/model/hmm_package/data_loader.py
+M	src/model/hmm_package/hmm_model.pkl
+D	src/model/hmm_package/hmm_model_input.parquet
+M	src/model/hmm_package/latest_dashboard.png
+M	src/model/hmm_package/main.py
+M	src/model/hmm_package/model.py
+M	src/model/hmm_package/model_selection.png
+M	src/model/hmm_package/vis.py
+
+commit b173e7019c3f15e6ac3e9615b42d76b852b93d39
+Author: janwan2003 <janwan2003@hotmail.com>
+Date:   Sun Mar 15 14:28:47 2026 +0100
+
+    feat: regime detection via dtw clustering (#22)
+    
+    Co-authored-by: Jan Wangrat <jan.wangrat@neuralalpha.com>
+
+A	.gitmodules
+A	data/processed/dtw_regime_labels.csv
+A	data/reports/dtw_cluster_stats.csv
+A	data/reports/figures/dtw_dendrogram_k2.png
+A	data/reports/figures/dtw_dendrogram_k3.png
+A	data/reports/figures/dtw_dendrogram_k4.png
+A	data/reports/figures/dtw_regime_timeline.png
+A	data/reports/figures/dtw_regime_timeline.svg
+A	helpermodules
+M	pyproject.toml
+A	src/classes/clustering/regime_clustering.py
+M	src/classes/metrics/verify_financial_hypotheses.py
+M	uv.lock
+
+commit d088731507ac4c71988dae12710847121c023ed0
+Author: Jan Wangrat <jan.wangrat@neuralalpha.com>
+Date:   Tue Feb 17 18:50:09 2026 +0100
+
+    feat: regime detection via dtw clustering
+
+A	.gitmodules
+A	data/processed/dtw_regime_labels.csv
+A	data/reports/dtw_cluster_stats.csv
+A	data/reports/figures/dtw_dendrogram_k2.png
+A	data/reports/figures/dtw_dendrogram_k3.png
+A	data/reports/figures/dtw_dendrogram_k4.png
+A	data/reports/figures/dtw_regime_timeline.png
+A	data/reports/figures/dtw_regime_timeline.svg
+A	helpermodules
+M	pyproject.toml
+A	src/classes/clustering/regime_clustering.py
+M	src/classes/metrics/verify_financial_hypotheses.py
+M	uv.lock
+
+commit 5b24dad04957ba0f318083afd3ce4150167de723
+Author: Lorenzo Pirozzi <99276269+Wxlddd@users.noreply.github.com>
+Date:   Mon Dec 15 19:58:20 2025 +0100
+
+    Hmm implementation (#21)
+    
+    * Add new datasets and update dependencies
+    
+    - Added DGS2.csv containing daily values for a financial metric.
+    - Added credit_spread_baa_aaa.csv with credit spread data.
+    - Introduced test_data.csv for testing purposes with sample data.
+    - Added yield_curve_10y_2y_spread.csv with yield curve spread data.
+    - Updated uv.lock to include the hmmlearn package (version 0.3.3) and its dependencies.
+    
+    * Implementazione di un modello HMM bivariato per la generazione e l'analisi di dati sintetici di log-returns e log-volatility. Aggiunta di funzioni per la generazione dei dati, il fitting del modello, il mapping semantico degli stati e la visualizzazione dei risultati tramite grafici avanzati.
+    
+    * Implement feature X to enhance user experience and improve performance
+    
+    * feat: Add initial HMM package for market regime detection, including model components, data handling, visualization, and a comprehensive test notebook.
+    
+    * feat: Implement full HMM pipeline with data inspection, model selection, training, and comprehensive visualization.
+    
+    * feat: add latest dashboard image
+    
+    * feat: Add HMM market regime detection pipeline including data loading, configuration, model training, and visualization.
+    
+    * updated gitignore
+    
+    * chore: remove parquet inspection script and ignore `data/raw/` directory.
+    
+    * feat: Enhance data loading and generation functions with detailed documentation and dynamic feature selection for HMM analysis
+    
+    * feat: Add visualization functions for HMM market regime analysis
+    
+    * cleanup/linting_as_some_people_dont_use_precommit
+    
+    * cleanup/cleanup of the model
+    
+    ---------
+    
+    Co-authored-by: Jan Wangrat <jan.wangrat@neuralalpha.com>
+
+M	.gitignore
+M	pyproject.toml
+M	src/classes/metrics/cross_asset.py
+A	src/data/raw/AAA.csv
+A	src/data/raw/BAA.csv
+A	src/data/raw/DGS10.csv
+A	src/data/raw/DGS2.csv
+A	src/data/raw/credit_spread_baa_aaa.csv
+A	src/data/raw/test_data.csv
+A	src/data/raw/yield_curve_10y_2y_spread.csv
+M	src/labels/make_labels.py
+A	src/model/hmm_package/README.md
+A	src/model/hmm_package/__init__.py
+A	src/model/hmm_package/config.py
+A	src/model/hmm_package/data_loader.py
+A	src/model/hmm_package/hmm_model.pkl
+A	src/model/hmm_package/hmm_model_input.parquet
+A	src/model/hmm_package/latest_dashboard.png
+A	src/model/hmm_package/main.py
+A	src/model/hmm_package/model.py
+A	src/model/hmm_package/model_selection.png
+A	src/model/hmm_package/vis.py
+A	src/model/test_data.py
+A	src/model/tests.ipynb
+M	uv.lock
+
+commit d413f02ff27fe0d1ab7177049dc68271d6e0b402
+Author: Epic <puppo.mattia@gmail.com>
+Date:   Sat Dec 13 11:49:23 2025 +0100
+
+    Add z-score verification and ADF+KPSS stationarity (#20)
+    
+    * Add z-score verification and ADF+KPSS stationarity
+    
+    * Refine preprocessing: use existing _z columns only for ADF+KPSS
+    
+    * feat: Introduce advanced feature preprocessing with distribution analysis, VIF, and PCA, generating comprehensive diagnostic reports and HMM model inputs.
+    
+    * fix: Paths of reports
+    
+    * feat: standardise financial hypothesis script and generate reports
+    
+    ---------
+    
+    Co-authored-by: MZ2305 <matteo.zappa23@gmail.com>
+
+A	data/processed/distribution/distribution_stats.csv
+A	data/processed/distribution/vif_stats.csv
+A	data/processed/hmm_input/hmm_model_input.csv
+A	data/processed/hmm_input/hmm_model_input.parquet
+A	data/reports/distribution_stats_copy_for_report.csv
+M	data/reports/feature_loss_report.json
+M	data/reports/figures/corr_heatmap.png
+M	data/reports/figures/feature_distributions.png
+M	data/reports/figures/regime_stats.png
+M	data/reports/figures/regime_stats.svg
+M	data/reports/figures/regime_timeline.png
+M	data/reports/figures/regime_timeline.svg
+A	data/reports/financial_hypothesis_cross_asset.csv
+A	data/reports/financial_hypothesis_curve_spreads.csv
+A	data/reports/financial_hypothesis_returns.csv
+A	data/reports/financial_hypothesis_volatility.csv
+A	data/reports/scree/credit_scree.png
+A	data/reports/scree/cross_asset_scree.png
+A	data/reports/scree/market_scree.png
+M	src/classes/metrics/build_features.py
+M	src/classes/metrics/curve_credit.py
+A	src/classes/metrics/preprocessing.py
+M	src/classes/metrics/standardize.py
+A	src/classes/metrics/verify_financial_hypotheses.py
+M	src/classes/viz/plotter.py
+M	src/labels/make_labels.py
+M	src/reports/sanity_plots.py
+
+commit 4231a6b8fa6734d29932afcd857fe62826cb6f33
+Author: Vittorio Sironi <98646453+vittoriosironi@users.noreply.github.com>
+Date:   Thu Nov 27 22:21:53 2025 +0100
+
+    feat: Enhance logging in build_features and add Plotter class for visualizations (#19)
+    
+    * feat: Complete implementation of Task P6 - Labels & Sanity Plots
+    
+    - Added label generation module (`make_labels.py`) for volatility buckets and risk regimes.
+    - Implemented pipeline orchestration script (`p6_pipeline.py`) to run label generation and sanity plots.
+    - Developed sanity plots module (`sanity_plots.py`) for visual validation of regime labels.
+    - Created comprehensive unit tests (`test_p6_labels.py`) covering label logic and pipeline execution.
+    - Established documentation (`SKELETON_SUMMARY.md`) detailing implementation status, design decisions, and next steps.
+    - Ensured all tests pass with sample data, confirming functionality and output integrity.
+    
+    * feat: Complete implementation of Task P6 - Labels & Sanity Plots
+    
+    - Added label generation module (`make_labels.py`) for volatility buckets and risk regimes.
+    - Implemented pipeline orchestration script (`p6_pipeline.py`) to run label generation and sanity plots.
+    - Developed sanity plots module (`sanity_plots.py`) for visual validation of regime labels.
+    - Created comprehensive unit tests (`test_p6_labels.py`) covering label logic and pipeline execution.
+    - Established documentation (`SKELETON_SUMMARY.md`) detailing implementation status, design decisions, and next steps.
+    - Ensured all tests pass with sample data, confirming functionality and output integrity.
+    
+    * feat: Update feature column mappings in label generation and sanity plots
+    
+    * feat: Add acceptance report and output files for Task P6 - Labels & Sanity Plots
+    
+    * feat: Enhance data handling in label generation and sanity plots by setting date as index and improving plot styling
+    
+    * feat: Update acceptance report and preliminary labels with correct date range and add notes on risk-off rule
+    
+    * feat: Update .gitignore to include .vscode directory and inspect_d1.ipynb
+    
+    * feat: Remove P6 Activation Checklist and README as part of project cleanup
+    
+    * Added svg plots
+    
+    * feat: Update acceptance report generation timestamp and remove outdated notes; enhance sanity plot outputs to include SVG format
+    
+    * feat: Remove acceptance report and unit tests for P6 as part of project cleanup
+    
+    * Refactor report output paths in DataManager and sanity_plots
+    
+    * feat: Enhance logging in build_features and add Plotter class for visualizations
+    
+    * feat: update directory
+    
+    ---------
+    
+    Co-authored-by: Wxlddd <lorenzopirozzi0@gmail.com>
+    Co-authored-by: Mz2305 <matteo.zappa23@gmail.com>
+
+M	.flake8
+M	src/classes/metrics/build_features.py
+M	src/classes/metrics/standardize.py
+A	src/classes/viz/plotter.py
+
+commit 509a413b79dc0fd0d18afb28e6c8ceed2845eac4
+Author: Lorenzo Pirozzi <99276269+Wxlddd@users.noreply.github.com>
+Date:   Thu Nov 27 21:54:27 2025 +0100
+
+    Feat/labels sanityplots(p6) (#17)
+    
+    * feat: Complete implementation of Task P6 - Labels & Sanity Plots
+    
+    - Added label generation module (`make_labels.py`) for volatility buckets and risk regimes.
+    - Implemented pipeline orchestration script (`p6_pipeline.py`) to run label generation and sanity plots.
+    - Developed sanity plots module (`sanity_plots.py`) for visual validation of regime labels.
+    - Created comprehensive unit tests (`test_p6_labels.py`) covering label logic and pipeline execution.
+    - Established documentation (`SKELETON_SUMMARY.md`) detailing implementation status, design decisions, and next steps.
+    - Ensured all tests pass with sample data, confirming functionality and output integrity.
+    
+    * feat: Complete implementation of Task P6 - Labels & Sanity Plots
+    
+    - Added label generation module (`make_labels.py`) for volatility buckets and risk regimes.
+    - Implemented pipeline orchestration script (`p6_pipeline.py`) to run label generation and sanity plots.
+    - Developed sanity plots module (`sanity_plots.py`) for visual validation of regime labels.
+    - Created comprehensive unit tests (`test_p6_labels.py`) covering label logic and pipeline execution.
+    - Established documentation (`SKELETON_SUMMARY.md`) detailing implementation status, design decisions, and next steps.
+    - Ensured all tests pass with sample data, confirming functionality and output integrity.
+    
+    * feat: Update feature column mappings in label generation and sanity plots
+    
+    * feat: Add acceptance report and output files for Task P6 - Labels & Sanity Plots
+    
+    * feat: Enhance data handling in label generation and sanity plots by setting date as index and improving plot styling
+    
+    * feat: Update acceptance report and preliminary labels with correct date range and add notes on risk-off rule
+    
+    * feat: Update .gitignore to include .vscode directory and inspect_d1.ipynb
+    
+    * feat: Remove P6 Activation Checklist and README as part of project cleanup
+    
+    * Added svg plots
+    
+    * feat: Update acceptance report generation timestamp and remove outdated notes; enhance sanity plot outputs to include SVG format
+    
+    * feat: Remove acceptance report and unit tests for P6 as part of project cleanup
+    
+    * Refactor report output paths in DataManager and sanity_plots
+    
+    ---------
+    
+    Co-authored-by: Vittorio Sironi <vittorio.sironi@icloud.com>
+
+M	.gitignore
+A	data/processed/labels_prelim.csv
+R100	data/processed/feature_loss_report.json	data/reports/feature_loss_report.json
+R100	data/processed/corr_heatmap.png	data/reports/figures/corr_heatmap.png
+R100	data/processed/feature_distributions.png	data/reports/figures/feature_distributions.png
+A	data/reports/figures/regime_stats.png
+A	data/reports/figures/regime_stats.svg
+A	data/reports/figures/regime_timeline.png
+A	data/reports/figures/regime_timeline.svg
+M	src/classes/data/data_manager.py
+A	src/labels/make_labels.py
+A	src/reports/sanity_plots.py
+
+commit 805ab7d78a14a70de9a11329ce3f678069765e8c
+Author: janwan2003 <janwan2003@hotmail.com>
+Date:   Mon Nov 24 16:17:47 2025 +0100
+
+    feat: P2 - standarization and plots (#16)
+    
+    * feat: P2 - standarization and plots
+    
+    * Remove obsolete files and restore integrity report
+    
+    - Removed alpha.py, analyzer.py, engine.py, io.py, plotter.py, and main.py files from src directory.
+    - Cleared test_data_manager.py file from tests directory.
+    - Added a new integrity_report.csv file with updated content in the data/reports directory.
+    
+    ---------
+    
+    Co-authored-by: Jan Wangrat <jan.wangrat@neuralalpha.com>
+    Co-authored-by: Vittorio Sironi <vittorio.sironi@icloud.com>
+
+M	.gitignore
+D	.idea/.gitignore
+D	.idea/inspectionProfiles/profiles_settings.xml
+D	.idea/marketregime_hmm.iml
+D	.idea/misc.xml
+D	.idea/modules.xml
+D	.idea/vcs.xml
+D	.vscode/settings.json
+A	data/processed/corr_heatmap.png
+M	data/processed/cross_asset_features.parquet
+M	data/processed/curve_credit_features.parquet
+A	data/processed/feature_distributions.png
+A	data/processed/feature_loss_report.json
+A	data/processed/features_dataset.parquet
+R100	reports/integrity_report.csv	data/reports/integrity_report.csv
+D	notebooks/eda.ipynb
+M	pyproject.toml
+D	src/alpha.py
+D	src/classes/analysis/analyzer.py
+D	src/classes/backtest/engine.py
+A	src/classes/metrics/build_features.py
+R083	src/classes/metrics/cross-asset.py	src/classes/metrics/cross_asset.py
+A	src/classes/metrics/standardize.py
+D	src/classes/utils/io.py
+D	src/classes/viz/plotter.py
+D	src/main.py
+D	tests/test_data_manager.py
+M	uv.lock
+
+commit 2cf70fc733cf7ddbfd16683920447dd203a248cc
+Author: Matteo Zappa <matteo.zappa23@gmail.com>
+Date:   Mon Nov 24 11:10:07 2025 +0100
+
+    Fix: Data_manager (#15)
+    
+    * feat: implement credit curve feature generation #11
+    
+    * feat: add CSV export for curve_credit_features #13
+    
+    * Fix: fixed class data_manager (add fetch MOVE and TLT), fixed data cleaning and add data validation
+    
+    * Fix: ffill the dates with null values
+    
+    ---------
+    
+    Co-authored-by: Mattia Puppo <puppo.mattia@gmail.com>
+    Co-authored-by: janwan2003 <janwan2003@hotmail.com>
+
+M	data/cleaned/credit_spread.csv
+M	data/cleaned/credit_spread.parquet
+M	data/cleaned/dgs10.csv
+M	data/cleaned/dgs10.parquet
+M	data/cleaned/dgs2.csv
+M	data/cleaned/dgs2.parquet
+M	data/cleaned/market_macro_merged.csv
+M	data/cleaned/market_macro_merged.parquet
+M	data/cleaned/move.csv
+M	data/cleaned/move.parquet
+M	data/cleaned/spx.csv
+M	data/cleaned/spx.parquet
+M	data/cleaned/tlt.csv
+M	data/cleaned/tlt.parquet
+M	data/cleaned/vix.csv
+M	data/cleaned/vix.parquet
+A	data/cleaned/yield_curve_spread.csv
+A	data/cleaned/yield_curve_spread.parquet
+M	reports/integrity_report.csv
+M	src/classes/data/data_manager.py
