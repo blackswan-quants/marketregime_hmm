@@ -33,7 +33,7 @@ DTW_LABELS_PATH = PROJECT_ROOT / "data" / "processed" / "dtw_regime_labels.csv"
 SPX_PATH = PROJECT_ROOT / "data" / "cleaned" / "spx.parquet"
 
 HMM_COLORS = {"Risk-On": "#2ecc71", "Neutral": "#95a5a6", "Risk-Off": "#e74c3c"}
-DTW_COLORS = {1: "#2ecc71", 2: "#e74c3c", 3: "#3498db", 4: "#f39c12"}
+DTW_COLORS = {"Risk-On": "#2ecc71", "Neutral": "#95a5a6", "Risk-Off": "#e74c3c"}
 
 
 # ============================================================================
@@ -422,8 +422,8 @@ def plot_side_by_side_regimes(
 
     # Legend for DTW
     for cid in sorted(merged["dtw_regime"].unique()):
-        color = DTW_COLORS.get(int(cid), "#95a5a6")
-        ax2.axvspan(dates[0], dates[0], alpha=0.25, color=color, label=f"Cluster {cid}")
+        color = DTW_COLORS.get(cid, "#95a5a6")
+        ax2.axvspan(dates[0], dates[0], alpha=0.25, color=color, label=f"Regime {cid}")
     ax2.legend(loc="upper left", fontsize=10)
 
     ax2.xaxis.set_major_locator(mdates.MonthLocator())
@@ -486,9 +486,8 @@ def plot_regime_statistics_comparison(
 
             # Value labels on bars
             for i, v in enumerate(values):
-                offset = abs(v) * 0.05 + 0.01
-                y_pos = v + offset if v >= 0 else v - offset
-                ax.text(i, y_pos, f"{v:.3f}", ha="center", fontsize=9)
+                y_pos = v / 2.0
+                ax.text(i, y_pos, f"{v:.3f}", ha="center", va="center", fontsize=10, color="black", fontweight="bold")
 
     plt.tight_layout()
     plt.savefig(output_path, dpi=300, bbox_inches="tight")
@@ -564,7 +563,7 @@ def generate_comparison_report(
         dtw_validation: DTW financial validation DataFrame.
         output_path: Path to save report.
     """
-    output_path = output_path or (REPORTS_DIR / "hmm_vs_dtw_comparison.md")
+    output_path = output_path or (PROJECT_ROOT / "src" / "reports" / "hmm_vs_dtw_comparison.md")
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     date_min = pd.Timestamp(merged["date"].min()).strftime("%Y-%m-%d")
@@ -713,6 +712,13 @@ def run_comparison() -> None:
     if merged.empty:
         logger.error("No overlapping dates between HMM, DTW, and SPX — cannot compare")
         return
+
+    logger.info("Dynamically renaming DTW clusters to Risk-On/Neutral/Risk-Off")
+    temp_dtw_stats = compute_per_regime_stats(merged, "dtw_regime")
+    if len(temp_dtw_stats) == 3:
+        sorted_dtw = temp_dtw_stats.sort_values("annualized_vol_pct")
+        mapping = {sorted_dtw.index[0]: "Risk-On", sorted_dtw.index[1]: "Neutral", sorted_dtw.index[2]: "Risk-Off"}
+        merged["dtw_regime"] = merged["dtw_regime"].map(mapping)
 
     # Agreement metrics
     logger.info("Computing agreement metrics")

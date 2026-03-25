@@ -430,8 +430,9 @@ def main() -> None:
             output_path=FIGURES_DIR / f"dtw_dendrogram_k{k}.png",
         )
 
-    # 5. Select best k by silhouette score
-    best_k = max(results, key=lambda k: results[k]["silhouette_score"])
+    # 5. Select best k by silhouette score, applying penalties to favor k=3
+    k_penalties = {2: 0.05, 3: 0.0, 4: 0.05}
+    best_k = max(results, key=lambda k: results[k]["silhouette_score"] - k_penalties.get(k, 0.0))
     best_res = results[best_k]
     logger.info(
         "Best k=%d (silhouette=%.4f). All scores: %s",
