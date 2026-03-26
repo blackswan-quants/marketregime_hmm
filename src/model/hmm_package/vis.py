@@ -260,7 +260,7 @@ def create_dashboard(
     # but for now simplicity is better.
 
     # Save the figure
-    save_path = os.path.join(os.path.dirname(__file__), "latest_dashboard.png")
+    save_path = os.path.join(os.path.dirname(__file__), "latest_dashboard.pdf")
     plt.tight_layout()
     plt.savefig(save_path, dpi=100)
     logger.info("Dashboard saved to: %s", save_path)
@@ -295,7 +295,7 @@ def plot_model_selection(df_results):
     ax1.legend(lines1 + lines2, labels1 + labels2, loc="upper center", bbox_to_anchor=(0.5, 1.1), ncol=2)
     plt.tight_layout()
 
-    save_path = os.path.join(os.path.dirname(__file__), "model_selection.png")
+    save_path = os.path.join(os.path.dirname(__file__), "model_selection.pdf")
     plt.savefig(save_path, dpi=100)
     logger.info("Model selection plot saved to: %s", save_path)
     # plt.show()

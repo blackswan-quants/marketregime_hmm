@@ -216,12 +216,6 @@ A crucial step involves validating the economic consistency of the labels. The s
     \label{fig:regime_stats}
 \end{figure}
 
-Specifically, we observe the following regime dynamics based on the latest HMM estimates:
-\begin{itemize}
-    \item \textbf{Volatility:} The \texttt{Risk-Off} regime has a significantly higher annualized volatility of 43.91\% compared to \texttt{Neutral} (16.01\%) and \texttt{Risk-On} (10.21\%).
-    \item \textbf{Returns:} The \texttt{Risk-Off} regime shows a negative mean daily return (-0.096\%), whereas \texttt{Neutral} and \texttt{Risk-On} exhibit positive returns (0.180\% and 0.145\% respectively).
-\end{itemize}
-
 \subsection{Financial Validation: Bull vs Bear Regimes}
 \textit{(Sprint Update)}: Moving beyond preliminary heuristics, we explicitly cross-validate the probabilistic outputs (HMM and DTW clusters) against financial realities. We define:
 \begin{itemize}
@@ -275,22 +269,8 @@ The processed, orthogonalized PCA features are fed into a multi-start Gaussian H
 
 To determine the optimal number of hidden regimes ($k$), we employ a custom penalized Bayesian Information Criterion (BIC). Standard BIC often overestimates $k$ in financial time series; our penalized BIC introduces a severe complexity penalty if the expected duration of any inferred state falls below a minimum threshold (e.g., 5 days), forcing the model to return a structurally sound set of regimes.
 
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=\linewidth]{model_selection.pdf}
-    \caption{Model selection via penalized Bayesian Information Criterion. The optimal number of regimes balances likelihood with temporal stability.}
-    \label{fig:model_selection}
-\end{figure}
-
 \subsection{Clustering Visualization and Interpretation}
 Once the optimal HMM is selected, we perform inference via the Viterbi algorithm. Semantic interpretation is strictly data-driven: labels are automatically assigned by sorting the Gaussian means across the primary PCA axis, which typically explains the bulk of market variance.
-
-\begin{figure*}[htbp]
-    \centering
-    \includegraphics[width=0.9\textwidth]{latest_dashboard.pdf}
-    \caption{Current Market Dashboard providing the real-time regime classification and contributing indicators based on the latest available feature data.}
-    \label{fig:latest_dashboard}
-\end{figure*}
 
 % ===================================================================
 \section{HMM vs. Clustering}
@@ -318,26 +298,9 @@ By operating on rolling sequences, the DTW approach successfully groups periods 
 \end{figure*}
 
 \subsection{The Benefit of Markovian Persistence}
-While DTW clustering represents an improvement over static K-Means, the Hidden Markov Model provides a more elegant probabilistic framework for capturing volatility clustering. An HMM natively captures this temporal persistence through its transition probability matrix. The diagonal elements of this matrix define the "stickiness" of a regime. Coupled with our duration-penalized BIC during model selection, the HMM naturally filters out isolated market shocks that standard spatial clustering would misclassify as an entire regime shift. Ultimately, the Markovian framework creates clean, persistent boundaries between high-volatility "Risk-Off" regimes and low-volatility sustained "Bull" markets, delivering highly reliable and actionable signals for dynamic strategy allocation.
+While DTW clustering represents an improvement over static K-Means, the Hidden Markov Model provides a more elegant probabilistic framework for capturing volatility clustering. Financial volatility natively exhibits strong auto-correlation. 
 
-\subsection{Quantitative Comparison: HMM vs DTW}
-To rigorously assess the alignment between the hidden Markov approach and spatial-temporal clustering, we compute standard clustering agreement metrics. Over the intersecting sample, the comparison yields an Adjusted Rand Index (ARI) of 0.4562 and a Normalized Mutual Information (NMI) of 0.3834, signifying moderate agreement. 
-
-As shown in the confusion matrix (Figure \ref{fig:confusion_matrix}), the HMM \texttt{Risk-On} regime primarily maps to DTW Cluster 1. Conversely, the HMM \texttt{Risk-Off} regime shows overlap with DTW Clusters 1 and 3, reflecting the differences in state persistence and sensitivity between probabilistic models and distance-based heuristics. Overall, the HMM approach establishes a more resilient boundary for the volatile \texttt{Risk-Off} states.
-
-\begin{figure*}[htbp]
-    \centering
-    \includegraphics[width=0.9\textwidth]{hmm_vs_dtw_regimes.png}
-    \caption{Side-by-side comparison of regime timelines applied to the SPX price series (HMM vs DTW Clustering).}
-    \label{fig:hmm_vs_dtw}
-\end{figure*}
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.7\linewidth]{hmm_dtw_confusion_matrix.png}
-    \caption{Confusion Matrix illustrating the overlap between inferred HMM risk regimes and DTW temporal clusters.}
-    \label{fig:confusion_matrix}
-\end{figure*}
+An HMM natively captures this temporal persistence through its transition probability matrix. Ultimately, the Markovian framework creates clean, persistent boundaries between high-volatility "Bear/Risk-Off" regimes and low-volatility sustained "Bull" markets, delivering highly reliable and actionable signals for dynamic strategy allocation.
 
 % ===================================================================
 \appendix

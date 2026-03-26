@@ -115,7 +115,10 @@ def run_pipeline():
 
     # Ask User for K (Restored)
     logger.info("Auto-detected optimal k: %s", best_k_auto)
-    logger.info("Check 'model_selection.png' for the BIC plot")
+    logger.info("Check 'model_selection.pdf' for the BIC plot")
+    logger.info("*" * 50)
+    logger.info("ACTION REQUIRED: WAITING FOR USER INPUT BELOW")
+    logger.info("*" * 50)
     user_k = input(f"Enter number of regimes to use (default {best_k_auto}): ").strip()
 
     if user_k.isdigit():

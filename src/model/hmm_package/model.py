@@ -114,6 +114,8 @@ def select_best_model(
         best_model, best_ll = None, -np.inf
 
         for i in range(config.n_init):
+            if i % 10 == 0 or i == config.n_init - 1:
+                logger.info("Fitting k=%d: init %d/%d", k, i + 1, config.n_init)
             model, score = _fit_single_hmm(X_scaled, k, config, seed_offset=i)
             if model is not None and score > best_ll:
                 best_model, best_ll = model, score
@@ -221,6 +223,8 @@ def train_hmm(
 
     best_model, best_ll = None, -np.inf
     for i in range(config.n_init):
+        if i % 10 == 0 or i == config.n_init - 1:
+            logger.info("Fitting final model (k=%d): init %d/%d", n_components, i + 1, config.n_init)
         model, score = _fit_single_hmm(X_scaled, n_components, config, seed_offset=i)
         if model is not None and score > best_ll:
             best_model, best_ll = model, score
