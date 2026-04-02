@@ -31,7 +31,7 @@ FIGURES_DIR = Path("data/reports/figures")
 # Column name mapping - P2 output columns
 FEATURE_CONFIG = {
     "spx_price": "spx_close",  # SPX close price
-    "returns_1d": "D1",  # 1-day returns
+    "returns_1d": "R1",  # 1-day returns
 }
 
 # Plot styling
