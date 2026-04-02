@@ -247,7 +247,12 @@ def plot_conditional_statistics(
 
     # Add value labels on bars
     for i, v in enumerate(mean_ret.values):
-        ax1.text(i, v + 0.01 if v > 0 else v - 0.01, f"{v:.3f}%", ha="center", fontsize=10)
+        if abs(v) < 0.03:
+            y_pos = v + 0.005 if v >= 0 else v - 0.005
+            va = "bottom" if v >= 0 else "top"
+            ax1.text(i, y_pos, f"{v:.3f}%", ha="center", va=va, fontsize=10, fontweight="bold")
+        else:
+            ax1.text(i, v / 2, f"{v:.3f}%", ha="center", va="center", fontsize=10, fontweight="bold")
 
     # Plot 2: Annualized Volatility
     vol = stats["annualized_vol"]
@@ -258,7 +263,7 @@ def plot_conditional_statistics(
 
     # Add value labels on bars
     for i, v in enumerate(vol.values):
-        ax2.text(i, v + 1, f"{v:.1f}%", ha="center", fontsize=10)
+        ax2.text(i, v / 2, f"{v:.1f}%", ha="center", va="center", fontsize=10, fontweight="bold")
 
     plt.tight_layout()
     print(f"Saving conditional statistics to {output_path}...")
