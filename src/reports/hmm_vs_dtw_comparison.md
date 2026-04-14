@@ -1,8 +1,8 @@
 # HMM vs DTW Clustering: Regime Comparison Report
 
-**Generated:** 2026-03-25 08:44:05
-**Date Range:** 2021-06-17 to 2026-03-06
-**Overlapping Observations:** 1178
+**Generated:** 2026-04-14 17:27:44
+**Date Range:** 2021-06-16 to 2026-03-10
+**Overlapping Observations:** 1181
 
 ---
 
@@ -10,18 +10,18 @@
 
 | Metric | Value | Interpretation |
 |--------|-------|----------------|
-| Adjusted Rand Index | 0.3400 | Moderate agreement |
-| Normalized Mutual Info | 0.2203 | Low shared information |
+| Adjusted Rand Index | 0.4410 | Moderate agreement |
+| Normalized Mutual Info | 0.3363 | Moderate shared information |
 
 ---
 
 ## 2. Confusion Matrix (HMM rows x DTW columns)
 
-HMM Regime | DTW_Neutral | DTW_Risk-Off | DTW_Risk-On
---- | --- | --- | ---
-Neutral | 14 | 104 | 88
-Risk-Off | 13 | 78 | 154
-Risk-On | 0 | 18 | 709
+HMM Regime | DTW_Risk-Off | DTW_Risk-On
+--- | --- | ---
+Neutral | 208 | 69
+Risk-Off | 187 | 92
+Risk-On | 25 | 600
 
 ---
 
@@ -31,17 +31,16 @@ Risk-On | 0 | 18 | 709
 
 regime | mean_daily_return_pct | annualized_vol_pct | max_drawdown_pct | obs_count | win_rate_pct
 --- | --- | --- | --- | --- | ---
-Neutral | 0.20006268687263168 | 17.56264176818979 | -4.870302095345953 | 206 | 56.79611650485437
-Risk-Off | -0.15238279604453042 | 27.38828800886272 | -39.095603525433724 | 245 | 45.30612244897959
-Risk-On | 0.06772163096154989 | 11.708897780671142 | -6.314200628287833 | 727 | 56.671251719394775
+Neutral | 0.2653248849103413 | 17.44066020616931 | -8.193757238146569 | 277 | 61.371841155234655
+Risk-Off | -0.2305827682482368 | 25.529143646159802 | -53.01791501719546 | 279 | 42.29390681003584
+Risk-On | 0.07014561895248021 | 11.028665358294289 | -5.19534301238301 | 625 | 56.48
 
 ### DTW Clusters
 
 regime | mean_daily_return_pct | annualized_vol_pct | max_drawdown_pct | obs_count | win_rate_pct
 --- | --- | --- | --- | --- | ---
-Neutral | 0.46559762126987503 | 19.548355289650978 | -4.734711616777982 | 27 | 74.07407407407408
-Risk-Off | 0.056517409140399676 | 22.443390866588388 | -12.370313050295234 | 200 | 46.5
-Risk-On | 0.030744623103609228 | 15.83167464193764 | -24.95542076409153 | 951 | 55.41535226077813
+Risk-Off | -0.006103267452361919 | 23.594815599593165 | -22.99065596514881 | 420 | 49.28571428571429
+Risk-On | 0.07301811426307309 | 12.363503887473954 | -10.087607744393154 | 761 | 57.03022339027596
 
 ---
 
@@ -51,24 +50,24 @@ Risk-On | 0.030744623103609228 | 15.83167464193764 | -24.95542076409153 | 951 | 
 
 method | regime | role | check | value | pass
 --- | --- | --- | --- | --- | ---
-HMM | Risk-On | Bull | positive mean return | 0.0677% | True
-HMM | Risk-On | Bull | lowest volatility | 11.71% | True
-HMM | Risk-Off | Bear | negative mean return | -0.1524% | True
-HMM | Risk-Off | Bear | highest volatility | 27.39% | True
+HMM | Risk-On | Bull | positive mean return | 0.0701% | True
+HMM | Risk-On | Bull | lowest volatility | 11.03% | True
+HMM | Risk-Off | Bear | negative mean return | -0.2306% | True
+HMM | Risk-Off | Bear | highest volatility | 25.53% | True
 
 ### DTW
 
 method | regime | role | check | value | pass
 --- | --- | --- | --- | --- | ---
-DTW | Risk-On | Bull | positive mean return | 0.0307% | True
-DTW | Risk-On | Bull | lowest volatility | 15.83% | True
-DTW | Risk-Off | Bear | negative mean return | 0.0565% | False
-DTW | Risk-Off | Bear | highest volatility | 22.44% | True
+DTW | Risk-On | Bull | positive mean return | 0.0730% | True
+DTW | Risk-On | Bull | lowest volatility | 12.36% | True
+DTW | Risk-Off | Bear | negative mean return | -0.0061% | True
+DTW | Risk-Off | Bear | highest volatility | 23.59% | True
 
 ---
 
 ## 5. Figures
 
-- `hmm_vs_dtw_regimes.png` — Side-by-side regime timelines on SPX price
-- `regime_stats_comparison.png` — Per-regime return, volatility, drawdown bars
-- `hmm_dtw_confusion_matrix.png` — Confusion matrix heatmap
+- `hmm_vs_dtw_regimes.png` â€” Side-by-side regime timelines on SPX price
+- `regime_stats_comparison.png` â€” Per-regime return, volatility, drawdown bars
+- `hmm_dtw_confusion_matrix.png` â€” Confusion matrix heatmap
