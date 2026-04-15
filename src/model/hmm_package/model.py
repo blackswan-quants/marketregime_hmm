@@ -72,12 +72,13 @@ def _fit_single_hmm(X: np.ndarray, n_components: int, config: HMMConfig, seed_of
             random_state=rs,
         )
 
-        # Initialize transition matrix with strong diagonal if persistence_weight is set
+        # Initialize transition matrix with strong diagonal if persistence_weight is set.
+        # Remove "t" from init_params so hmmlearn doesn't overwrite our transmat_ during fit().
         if config.persistence_weight > 0:
             transmat = np.full((n_components, n_components), (1 - config.persistence_weight) / (n_components - 1))
             np.fill_diagonal(transmat, config.persistence_weight)
             model.transmat_ = transmat
-            model.init_params = "smc"  # Initialize startprob, means, covars
+            model.init_params = model.init_params.replace("t", "")
 
         model.fit(X)
 

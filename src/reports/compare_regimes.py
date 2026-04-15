@@ -20,7 +20,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score
-from sklearn.preprocessing import StandardScaler
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +61,7 @@ def load_hmm_regime_labels() -> pd.DataFrame:
 
     bundle = joblib.load(HMM_MODEL_PATH)
     model = bundle["model"]
+    scaler = bundle["scaler"]
     state_labels = bundle["state_labels"]
     feature_names = bundle["feature_names"]
 
@@ -73,8 +73,8 @@ def load_hmm_regime_labels() -> pd.DataFrame:
     df_feat = pd.DataFrame(features, columns=feature_names)
     df_smoothed = df_feat.rolling(window=5, min_periods=1).mean()
 
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(df_smoothed.values)
+    # Use the saved scaler from training (not a fresh one) to avoid distribution mismatch
+    X_scaled = scaler.transform(df_smoothed.values)
 
     _, Z_pred = model.decode(X_scaled)
 
@@ -97,20 +97,15 @@ def _extract_features(df: pd.DataFrame, feature_names: list) -> np.ndarray:
     """
     features = []
     for name in feature_names:
-        if name == "Log-Returns" and "R1" in df.columns:
-            features.append(df["R1"].values)
-        elif name == "Log-Volatility" and "V1" in df.columns:
+        if name == "V1'" and "V1'" in df.columns:
+            features.append(df["V1'"].values)
+        elif name == "V1'" and "V1" in df.columns:
+            # V1' is log-transformed realized volatility
             features.append(np.log(df["V1"].values + 1e-6))
-        elif name == "Drawdown" and "D1" in df.columns:
-            features.append(df["D1"].values)
-        elif name == "Yield Curve" and "M1" in df.columns:
-            features.append(df["M1"].values)
+        elif name in df.columns:
+            features.append(df[name].values)
         else:
-            # Try direct column match
-            if name in df.columns:
-                features.append(df[name].values)
-            else:
-                raise ValueError(f"Cannot find feature '{name}' in data columns: {df.columns.tolist()}")
+            raise ValueError(f"Cannot find feature '{name}' in data columns: {df.columns.tolist()}")
     return np.column_stack(features)
 
 
@@ -240,7 +235,7 @@ def _max_drawdown(returns: pd.Series) -> float:
     Returns:
         Maximum drawdown as a negative float (e.g. -0.15 for 15% drawdown).
     """
-    cumulative = (1 + returns).cumprod()
+    cumulative = np.exp(returns.cumsum())
     peak = cumulative.cummax()
     drawdown = (cumulative - peak) / peak
     return float(drawdown.min())
@@ -715,10 +710,15 @@ def run_comparison() -> None:
 
     logger.info("Dynamically renaming DTW clusters to Risk-On/Neutral/Risk-Off")
     temp_dtw_stats = compute_per_regime_stats(merged, "dtw_regime")
-    if len(temp_dtw_stats) == 3:
-        sorted_dtw = temp_dtw_stats.sort_values("annualized_vol_pct")
+    n_dtw_regimes = len(temp_dtw_stats)
+    sorted_dtw = temp_dtw_stats.sort_values("annualized_vol_pct")
+    if n_dtw_regimes == 2:
+        mapping = {sorted_dtw.index[0]: "Risk-On", sorted_dtw.index[1]: "Risk-Off"}
+    elif n_dtw_regimes == 3:
         mapping = {sorted_dtw.index[0]: "Risk-On", sorted_dtw.index[1]: "Neutral", sorted_dtw.index[2]: "Risk-Off"}
-        merged["dtw_regime"] = merged["dtw_regime"].map(mapping)
+    else:
+        mapping = {idx: f"Regime_{i+1}" for i, idx in enumerate(sorted_dtw.index)}
+    merged["dtw_regime"] = merged["dtw_regime"].map(mapping)
 
     # Agreement metrics
     logger.info("Computing agreement metrics")

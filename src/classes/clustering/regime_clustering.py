@@ -35,7 +35,7 @@ from clustering_class import TimeSeriesClustering  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
-HMM_INPUT_PATH = PROJECT_ROOT / "data" / "processed" / "hmm_input" / "hmm_model_input.parquet"
+MARKET_FEATURES_PATH = PROJECT_ROOT / "data" / "processed" / "market_features.parquet"
 SPX_PATH = PROJECT_ROOT / "data" / "cleaned" / "spx.parquet"
 FIGURES_DIR = PROJECT_ROOT / "data" / "reports" / "figures"
 REPORTS_DIR = PROJECT_ROOT / "data" / "reports"
@@ -406,9 +406,22 @@ def main() -> None:
     FIGURES_DIR.mkdir(parents=True, exist_ok=True)
     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
 
-    # 1. Load PCA features
-    logger.info("Loading HMM input from %s", HMM_INPUT_PATH)
-    df = pd.read_parquet(HMM_INPUT_PATH)
+    # 1. Load the same 3 features used by the HMM (R1, R2, V1')
+    logger.info("Loading market features from %s", MARKET_FEATURES_PATH)
+    raw = pd.read_parquet(MARKET_FEATURES_PATH)
+    dates = raw.index if isinstance(raw.index, pd.DatetimeIndex) else pd.to_datetime(raw.index)
+    df = (
+        pd.DataFrame(
+            {
+                "date": dates,
+                "R1": raw["R1"].values,
+                "R2": raw["R2"].values,
+                "V1p": raw["V1'"].values,
+            }
+        )
+        .dropna()
+        .reset_index(drop=True)
+    )
 
     # 2. Initialize and create windows
     rc = RegimeClustering(df, window_size=21)

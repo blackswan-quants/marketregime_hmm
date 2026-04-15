@@ -71,44 +71,47 @@ def load_real_data(filepath):
             features.append(df[col].values)
             feature_names.append(col)
     else:
-        # Fallback to original logic - Use specific column names if they exist
-        # Log-Returns
-        if "spx_close" in df.columns:
-            df["log_ret"] = np.log(df["spx_close"] / df["spx_close"].shift(1))
-            df = df.dropna(subset=["log_ret"])
-            features.append(df["log_ret"].values)
-            feature_names.append("Log-Returns")
-        elif "R1" in df.columns:
-            df = df.dropna(subset=["R1"])
-            features.append(df["R1"].values)
-            feature_names.append("Log-Returns")  # Keep naming consistent with user expectation
+        # Use the three market features selected for approximate Gaussianity
+        # and regime separability: R1 (daily log-return), R2 (5-day cumulative
+        # log-return), and V1' (log-realized volatility, 14-day).
+        cols_to_use = []
+        col_transforms = {}
 
-        # Log-Volatility
-        if "V1" in df.columns:
-            df = df.dropna(subset=["V1"])
-            features.append(np.log(df["V1"].values + 1e-6))
-            feature_names.append("Log-Volatility")
-        elif "vix_close" in df.columns:
-            df = df.dropna(subset=["vix_close"])
-            features.append(np.log(df["vix_close"].values + 1e-6))
-            feature_names.append("Log-Volatility")
+        # R1 — Daily Log-Return
+        if "R1" in df.columns:
+            cols_to_use.append("R1")
+            col_transforms["R1"] = ("R1", lambda v: v)
+        elif "spx_close" in df.columns:
+            df["R1"] = np.log(df["spx_close"] / df["spx_close"].shift(1))
+            cols_to_use.append("R1")
+            col_transforms["R1"] = ("R1", lambda v: v)
 
-        # Drawdown
-        if "D1" in df.columns:
-            df = df.dropna(subset=["D1"])
-            features.append(df["D1"].values)
-            feature_names.append("Drawdown")
+        # R2 — 5-Day Cumulative Log-Return
+        if "R2" in df.columns:
+            cols_to_use.append("R2")
+            col_transforms["R2"] = ("R2", lambda v: v)
 
-        # Yield Curve
-        if "M1" in df.columns:
-            df = df.dropna(subset=["M1"])
-            features.append(df["M1"].values)
-            feature_names.append("Yield Curve")
+        # V1' — Log-Realized Volatility (14-day)
+        if "V1'" in df.columns:
+            cols_to_use.append("V1'")
+            col_transforms["V1'"] = ("V1'", lambda v: v)
+        elif "V1" in df.columns:
+            cols_to_use.append("V1")
+            col_transforms["V1"] = ("V1'", lambda v: np.log(v + 1e-6))
+
+        # Single dropna on all selected columns to keep rows aligned
+        if cols_to_use:
+            df = df.dropna(subset=cols_to_use)
+
+        for col in cols_to_use:
+            name, transform = col_transforms[col]
+            features.append(transform(df[col].values))
+            feature_names.append(name)
 
     if not features:
         raise ValueError(
             "No usable features found for HMM input. "
-            "Expected PCA columns containing 'PC' or one of: spx_close, R1, V1, D1, M1. "
+            "Expected PCA columns containing 'PC' or one of: R1, R2, V1'. "
             f"Available columns: {df.columns.tolist()}"
         )
 
